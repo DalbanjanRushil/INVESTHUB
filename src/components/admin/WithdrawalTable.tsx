@@ -19,6 +19,8 @@ interface Props {
     data: WithdrawalRequest[];
 }
 
+import { toast } from "sonner";
+
 export default function WithdrawalTable({ data }: Props) {
     const router = useRouter();
     const [processingId, setProcessingId] = useState<string | null>(null);
@@ -40,9 +42,10 @@ export default function WithdrawalTable({ data }: Props) {
                 throw new Error(json.error || "Action failed");
             }
 
+            toast.success(`Request ${action === "APPROVE" ? "Approved" : "Rejected"} Successfully`);
             router.refresh(); // Refresh server data
         } catch (error: any) {
-            alert(error.message);
+            toast.error(error.message);
         } finally {
             setProcessingId(null);
         }

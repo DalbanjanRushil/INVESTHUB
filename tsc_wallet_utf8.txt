@@ -1,0 +1,5 @@
+﻿src/app/api/admin/distribute-profit/route.ts(46,31): error TS18048: 'w.balance' is possibly 'undefined'.
+src/app/api/admin/distribute-profit/route.ts(63,32): error TS18048: 'wallet.balance' is possibly 'undefined'.
+src/app/api/admin/settle/route.ts(53,33): error TS18048: 'wallet.balance' is possibly 'undefined'.
+src/app/api/finance/withdraw/route.ts(38,13): error TS18048: 'wallet.balance' is possibly 'undefined'.
+src/app/api/finance/withdraw/route.ts(43,9): error TS18048: 'wallet.balance' is possibly 'undefined'.

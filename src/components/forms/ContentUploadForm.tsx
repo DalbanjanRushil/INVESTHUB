@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Loader2, UploadCloud, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { toast } from "sonner";
+
 export default function ContentUploadForm() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -56,12 +58,19 @@ export default function ContentUploadForm() {
                 throw new Error("Failed to save content");
             }
 
-            alert("Content uploaded successfully!");
+            // Success Actions
+            toast.success("Content uploaded successfully!");
             setForm({ title: "", type: "VIDEO", url: "", description: "" });
             setFile(null);
+
+            // Dispatch event to update feeds on the same page
+            window.dispatchEvent(new Event('content-uploaded'));
+
+            // Refresh Server Components if needed (though Feed is client-side now)
             router.refresh();
+
         } catch (err: any) {
-            alert(err.message);
+            toast.error(err.message);
         } finally {
             setLoading(false);
         }
@@ -79,7 +88,7 @@ export default function ContentUploadForm() {
                     <label className="text-xs font-semibold uppercase text-gray-500 mb-1 block">Title</label>
                     <input
                         required
-                        className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-lg"
+                        className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-slate-900 dark:text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
                         placeholder="Market Analysis 2024"
                         value={form.title || ""}
                         onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -138,7 +147,7 @@ export default function ContentUploadForm() {
                             <input
                                 required={uploadMode === "URL"}
                                 type="url"
-                                className="w-full pl-9 pr-3 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-lg"
+                                className="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-slate-900 dark:text-white placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500 outline-none"
                                 placeholder={form.type === "VIDEO" ? "https://youtube.com/..." : "https://image.url/..."}
                                 value={form.url || ""}
                                 onChange={(e) => setForm({ ...form, url: e.target.value })}
@@ -151,7 +160,7 @@ export default function ContentUploadForm() {
                                 required={uploadMode === "FILE"}
                                 type="file"
                                 accept="image/*,video/*"
-                                className="w-full pl-9 pr-3 py-1.5 bg-gray-50 dark:bg-zinc-800 border-none rounded-lg text-sm file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                className="w-full pl-9 pr-3 py-1.5 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm text-slate-900 dark:text-white file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                                 onChange={handleFileChange}
                             />
                         </div>
@@ -161,7 +170,7 @@ export default function ContentUploadForm() {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2 bg-black dark:bg-white text-white dark:text-black rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50 flex justify-center"
+                    className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50 flex justify-center shadow-lg shadow-blue-600/20"
                 >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Publish Content"}
                 </button>

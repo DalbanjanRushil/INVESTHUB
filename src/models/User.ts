@@ -19,6 +19,9 @@ export interface IUser extends Document {
     referredBy?: mongoose.Types.ObjectId; // Code or UserID
     referralCode?: string; // e.g. "RUSHIL123"
     payoutPreference: "COMPOUND" | "PAYOUT";
+    resetToken?: string;
+    resetTokenExpiry?: Date;
+    kycStatus: "NOT_SUBMITTED" | "PENDING" | "VERIFIED" | "REJECTED";
     createdAt: Date;
     updatedAt: Date;
 }
@@ -66,6 +69,19 @@ const UserSchema = new Schema<IUser>(
             enum: ["COMPOUND", "PAYOUT"],
             default: "COMPOUND",
         },
+        resetToken: {
+            type: String,
+            select: false, // Security: don't expose token
+        },
+        kycStatus: {
+            type: String,
+            enum: ["NOT_SUBMITTED", "PENDING", "VERIFIED", "REJECTED"],
+            default: "NOT_SUBMITTED",
+        },
+        resetTokenExpiry: {
+            type: Date,
+            select: false,
+        },
     },
     {
         timestamps: true,
@@ -73,7 +89,6 @@ const UserSchema = new Schema<IUser>(
 );
 
 // Prevent model overwrite in hot-reload
-const User: Model<IUser> =
-    mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
+const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
 
 export default User;

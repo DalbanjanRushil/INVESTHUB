@@ -9,6 +9,7 @@ export enum DepositStatus {
 export interface IDeposit extends Document {
     userId: mongoose.Types.ObjectId;
     amount: number;
+    plan: 'FLEXI' | 'FIXED_3M' | 'FIXED_6M' | 'FIXED_1Y';
     razorpayOrderId: string;
     razorpayPaymentId?: string;
     razorpaySignature?: string;
@@ -28,6 +29,11 @@ const DepositSchema = new Schema<IDeposit>(
             type: Number,
             required: [true, "Amount is required"],
             min: [1, "Minimum deposit amount is 1"],
+        },
+        plan: {
+            type: String,
+            enum: ['FLEXI', 'FIXED_3M', 'FIXED_6M', 'FIXED_1Y'],
+            default: 'FLEXI',
         },
         razorpayOrderId: {
             type: String,

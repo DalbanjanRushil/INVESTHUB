@@ -28,15 +28,20 @@ export async function GET(req: Request) {
             .lean();
 
         // Fetch corresponding wallets to display balance
-        // In a larger system, we'd use aggregation or separate service logic.
         const usersWithWallet = await Promise.all(
             users.map(async (user) => {
-                const wallet = await Wallet.findOne({ userId: user._id }).select(
-                    "balance totalProfit totalDeposited"
-                );
+                const wallet = await Wallet.findOne({ userId: user._id });
                 return {
                     ...user,
-                    wallet: wallet || { balance: 0, totalProfit: 0, totalDeposited: 0 },
+                    wallet: wallet || {
+                        principal: 0,
+                        profit: 0,
+                        referral: 0,
+                        locked: 0,
+                        balance: 0,
+                        totalProfit: 0,
+                        totalDeposited: 0
+                    },
                 };
             })
         );

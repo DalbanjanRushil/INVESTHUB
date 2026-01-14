@@ -8,6 +8,7 @@ import { z } from "zod";
 
 const depositSchema = z.object({
     amount: z.number().min(1, "Minimum deposit amount is 1 INR"),
+    plan: z.enum(['FLEXI', 'FIXED_3M', 'FIXED_6M', 'FIXED_1Y']).optional().default('FLEXI'),
 });
 
 export async function POST(req: Request) {
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { amount } = depositSchema.parse(body);
+        const { amount, plan } = depositSchema.parse(body);
 
         // Initialize Razorpay
         // NOTE: In a real app, these keys should be in process.env
@@ -55,6 +56,7 @@ export async function POST(req: Request) {
         const newDeposit = await Deposit.create({
             userId: session.user.id,
             amount: amount,
+            plan: plan,
             razorpayOrderId: order.id,
             status: "PENDING",
         });

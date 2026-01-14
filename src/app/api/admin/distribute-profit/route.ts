@@ -31,9 +31,13 @@ export async function POST(req: Request) {
         const adminShare = declaredProfit * ADMIN_SHARE_PERCENTAGE;
         const userSharePool = declaredProfit * (1 - ADMIN_SHARE_PERCENTAGE);
 
-        // 3. Get Total Invested Capital (from all active users with balance > 0)
-        // We only distribute profit to users who have money in the wallet.
-        const eligibleWallets = await Wallet.find({ balance: { $gt: 0 } });
+        // 3. Get Total Invested Capital (from all active users with principal > 0 OR legacy balance > 0)
+        const eligibleWallets = await Wallet.find({
+            $or: [
+                { principal: { $gt: 0 } },
+                { balance: { $gt: 0 } }
+            ]
+        }).populate("userId", "name email payoutPreference");
 
         if (eligibleWallets.length === 0) {
             return NextResponse.json(
@@ -43,7 +47,7 @@ export async function POST(req: Request) {
         }
 
         const totalInvestedCapital = eligibleWallets.reduce(
-            (sum, w) => sum + w.balance,
+            (sum, w) => sum + (w.principal || 0) + (w.balance || 0),
             0
         );
 
@@ -55,9 +59,12 @@ export async function POST(req: Request) {
         // Global timestamp for this batch
         const now = new Date();
 
+        // Import locally to avoid top-level await issues if any
+        const { sendEmail } = await import("@/lib/email");
+
         for (const wallet of eligibleWallets) {
             // Logic: (UserBalance / TotalCapital) * UserSharePool
-            const shareRatio = wallet.balance / totalInvestedCapital;
+            const shareRatio = wallet.principal / totalInvestedCapital;
             let userProfit = Number((shareRatio * userSharePool).toFixed(2)); // Round to 2 decimals
 
             // --- FEATURE 1: SMART TAXATION (TDS) ---
@@ -72,15 +79,10 @@ export async function POST(req: Request) {
             }
 
             if (userProfit > 0) {
-                // --- FEATURE 3: COMPOUNDING MODE ---
-                // Query user preference (Fetch explicitly if not available in wallet object)
-                // Note: ideally we would populate this in the initial find(), improving performace for scale
-                // For simulation speed, we'll do a quick fetch or assume default COMPOUND if using aggregation
+                const user = wallet.userId as any; // Populated user
+                if (!user) continue;
 
-                // Optimized Step: We need to know the User's preference.
-                // Assuming 'wallet.userId' is the link.
-                const user = await User.findById(wallet.userId).select("payoutPreference");
-                const preference = user?.payoutPreference || "COMPOUND";
+                const preference = user.payoutPreference || "COMPOUND";
 
                 const updateQuery: any = {
                     $inc: { totalProfit: userProfit }
@@ -88,10 +90,10 @@ export async function POST(req: Request) {
 
                 if (preference === "COMPOUND") {
                     // Add to Principal (Compounding)
-                    updateQuery.$inc.balance = userProfit;
+                    updateQuery.$inc.principal = userProfit;
                 } else {
-                    // Add to Payout Wallet (No Compounding)
-                    updateQuery.$inc.payoutWalletBalance = userProfit;
+                    // Add to Profit Wallet (No Compounding)
+                    updateQuery.$inc.profit = userProfit;
                 }
 
                 bulkWalletOps.push({
@@ -105,7 +107,7 @@ export async function POST(req: Request) {
                 bulkTransactionOps.push({
                     insertOne: {
                         document: {
-                            userId: wallet.userId,
+                            userId: user._id,
                             type: TransactionType.PROFIT,
                             amount: userProfit,
                             taxDeducted: taxDeducted, // Store tax info
@@ -121,7 +123,7 @@ export async function POST(req: Request) {
                 bulkNotificationOps.push({
                     insertOne: {
                         document: {
-                            userId: wallet.userId,
+                            userId: user._id,
                             title: "Profit Credited",
                             message: `You received ₹${userProfit} as your share of the monthly profit distribution.`,
                             isRead: false,
@@ -130,6 +132,27 @@ export async function POST(req: Request) {
                         },
                     },
                 });
+
+                // --- SEND EMAIL NOTIFICATION ---
+                // We don't await this to avoid blocking the loop too much, or we catch errors
+                sendEmail({
+                    to: user.email,
+                    subject: "💰 Monthly Profit Received!",
+                    html: `
+                        <div style="font-family: Arial, sans-serif; color: #333;">
+                            <h2>Monthly Profit Distribution</h2>
+                            <p>Hi ${user.name},</p>
+                            <p>Great news! You have received a profit share.</p>
+                            <ul>
+                                <li><strong>Amount:</strong> ₹${userProfit}</li>
+                                <li><strong>Preference:</strong> ${preference === 'COMPOUND' ? 'Reinvested (Compounding)' : 'Added to Wallet (Ready via specific request)'}</li>
+                                ${taxDeducted > 0 ? `<li><strong>Tax Deducted (TDS):</strong> ₹${taxDeducted}</li>` : ''}
+                            </ul>
+                            <p>Check your dashboard for more details.</p>
+                            <p>Best,<br>InvestHub Team</p>
+                        </div>
+                    `
+                }).catch(err => console.error(`Failed to send email to ${user.email}`, err));
             }
         }
 

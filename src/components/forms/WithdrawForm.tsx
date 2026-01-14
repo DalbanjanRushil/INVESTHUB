@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Loader2, ArrowDownCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { toast } from "sonner";
+
 export default function WithdrawForm() {
     const [amount, setAmount] = useState("");
     const [loading, setLoading] = useState(false);
@@ -11,7 +13,7 @@ export default function WithdrawForm() {
 
     const handleWithdraw = async () => {
         if (!amount || Number(amount) <= 0) {
-            alert("Please enter a valid amount");
+            toast.error("Please enter a valid amount");
             return;
         }
 
@@ -30,11 +32,11 @@ export default function WithdrawForm() {
                 throw new Error(data.error || "Failed to request withdrawal");
             }
 
-            alert("Withdrawal requested! Funds deducted and held pending approval.");
+            toast.success("Withdrawal requested! Funds deducted and held pending approval.");
             setAmount("");
             router.refresh();
         } catch (err: any) {
-            alert(err.message);
+            toast.error(err.message);
         } finally {
             setLoading(false);
         }

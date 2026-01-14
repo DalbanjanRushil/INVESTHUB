@@ -3,8 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import connectToDatabase from "@/lib/db";
 import Content, { ContentType } from "@/models/Content";
-import { UserRole } from "@/models/User";
+import User, { UserRole } from "@/models/User";
 import { z } from "zod";
+
+export const dynamic = "force-dynamic";
 
 const contentSchema = z.object({
     title: z.string().min(3),
@@ -20,14 +22,37 @@ export async function GET(req: Request) {
     try {
         await connectToDatabase();
 
-        // Sort by newest first
-        const content = await Content.find({ isPublic: true })
-            .sort({ createdAt: -1 })
-            .limit(20);
+        const _u = User; // Ensure User model loaded
 
-        return NextResponse.json(content, { status: 200 });
-    } catch (error) {
-        return NextResponse.json({ error: "Failed to fetch content" }, { status: 500 });
+        const session = await getServerSession(authOptions);
+        const currentUserId = session?.user?.id;
+
+        // Use strictPopulate: false to handle schema hot-reload inconsistencies in Dev
+        const contentList = await Content.find()
+            .populate({ path: "comments.userId", select: "name", strictPopulate: false })
+            .sort({ createdAt: -1 })
+            .limit(20)
+            .lean();
+
+        const enhancedContent = contentList
+            .filter((item: any) => item.isPublic !== false)
+            .map((item: any) => ({
+                ...item,
+                likesCount: item.likes?.length || 0,
+                commentsCount: item.comments?.length || 0,
+                isLiked: currentUserId ? item.likes?.map((id: any) => id.toString()).includes(currentUserId) : false,
+                comments: item.comments?.map((c: any) => ({
+                    _id: c._id,
+                    text: c.text,
+                    createdAt: c.createdAt,
+                    user: c.userId ? { _id: c.userId._id, name: c.userId.name } : { name: "Unknown User" }
+                }))
+            }));
+
+        return NextResponse.json(enhancedContent, { status: 200 });
+    } catch (error: any) {
+        console.error("Content Fetch Error:", error);
+        return NextResponse.json({ error: "Failed to fetch content", details: error.message }, { status: 500 });
     }
 }
 
@@ -50,6 +75,9 @@ export async function POST(req: Request) {
             url,
             description,
             uploadedBy: session.user.id,
+            isPublic: true,
+            likes: [],
+            comments: []
         });
 
         return NextResponse.json(

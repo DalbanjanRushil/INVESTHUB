@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Loader2, TrendingUp, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { toast } from "sonner";
+
 export default function ProfitDistributionForm() {
     const [amount, setAmount] = useState("");
     const [loading, setLoading] = useState(false);
@@ -11,7 +13,7 @@ export default function ProfitDistributionForm() {
 
     const handleDistribute = async () => {
         if (!amount || Number(amount) <= 0) {
-            alert("Please enter a valid profit amount");
+            toast.error("Please enter a valid profit amount");
             return;
         }
 
@@ -35,11 +37,11 @@ export default function ProfitDistributionForm() {
                 throw new Error(data.error || "Failed to distribute");
             }
 
-            alert(`Success! Distributed to ${data.stats.recipients} users.`);
+            toast.success(`Success! Distributed to ${data.stats.recipients} users.`);
             setAmount("");
             router.refresh();
         } catch (err: any) {
-            alert(err.message);
+            toast.error(err.message);
         } finally {
             setLoading(false);
         }

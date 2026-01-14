@@ -28,7 +28,9 @@ export async function POST(req: Request) {
 
         // 2. Find eligible wallets
         // Balance must be strictly greater than minBalance
-        const wallets = await Wallet.find({ balance: { $gt: minBalance } });
+        // 2. Find eligible wallets
+        // Profit must be strictly greater than minBalance
+        const wallets = await Wallet.find({ profit: { $gt: minBalance } }).populate("userId", "name email");
 
         if (wallets.length === 0) {
             return NextResponse.json({
@@ -42,10 +44,17 @@ export async function POST(req: Request) {
         const bulkWithdrawalOps = [];
         const bulkTransactionOps = [];
 
+        // Import locally
+        const { sendEmail } = await import("@/lib/email");
+
         let totalSettledAmount = 0;
 
         for (const wallet of wallets) {
-            const grossAmount = wallet.balance - minBalance;
+            const grossAmount = wallet.profit - minBalance;
+            const user = wallet.userId as any; // Populated user
+
+            // Skip if user is missing (should not happen due to required FK but safety first)
+            if (!user) continue;
 
             // --- FEATURE 1: SMART TAXATION (Wiki: TDS on Exit) ---
             // Rule: If Withdrawal > 50,000, deduct 1% Cess/Fee
@@ -62,12 +71,12 @@ export async function POST(req: Request) {
             if (netAmount > 0) {
                 totalSettledAmount += netAmount;
 
-                // 1. Deduct Balance (Gross Amount removed from system)
+                // 1. Deduct Profit (Gross Amount removed from system)
                 bulkWalletOps.push({
                     updateOne: {
                         filter: { _id: wallet._id },
                         update: {
-                            $inc: { balance: -grossAmount, totalWithdrawn: grossAmount }
+                            $inc: { profit: -grossAmount, totalWithdrawn: grossAmount }
                         }
                     }
                 });
@@ -79,7 +88,7 @@ export async function POST(req: Request) {
                     insertOne: {
                         document: {
                             _id: withdrawalId,
-                            userId: wallet.userId,
+                            userId: user._id,
                             amount: netAmount, // Net Pay to User
                             status: WithdrawalStatus.PENDING,
                             adminRemark: `Quarterly Settlement [Gross: ₹${grossAmount}, Tax: ₹${taxDeducted}]`,
@@ -93,7 +102,7 @@ export async function POST(req: Request) {
                 bulkTransactionOps.push({
                     insertOne: {
                         document: {
-                            userId: wallet.userId,
+                            userId: user._id,
                             type: TransactionType.WITHDRAWAL,
                             amount: netAmount,
                             taxDeducted: taxDeducted,
@@ -105,6 +114,27 @@ export async function POST(req: Request) {
                         }
                     }
                 });
+
+                // --- SEND EMAIL NOTIFICATION ---
+                sendEmail({
+                    to: user.email,
+                    subject: "🏦 Quarterly Settlement Processed",
+                    html: `
+                        <div style="font-family: Arial, sans-serif; color: #333;">
+                            <h2>Quarterly Settlement Update</h2>
+                            <p>Hi ${user.name},</p>
+                            <p>We have processed a quarterly settlement for your account.</p>
+                            <ul>
+                                <li><strong>Processed Amount (Net):</strong> ₹${netAmount}</li>
+                                <li><strong>Gross Amount:</strong> ₹${grossAmount}</li>
+                                ${taxDeducted > 0 ? `<li><strong>Tax/Fees:</strong> ₹${taxDeducted}</li>` : ''}
+                                <li><strong>Global Min Balance Maintained:</strong> ₹${minBalance}</li>
+                            </ul>
+                            <p>This amount is now pending withdrawal approval. Check your dashboard for status.</p>
+                            <p>Best,<br>InvestHub Team</p>
+                        </div>
+                    `
+                }).catch(err => console.error(`Failed to send email to ${user.email}`, err));
             }
         }
 

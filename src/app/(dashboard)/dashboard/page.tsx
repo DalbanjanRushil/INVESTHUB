@@ -1,25 +1,73 @@
-import Navbar from "@/components/layout/Navbar";
-import DepositForm from "@/components/forms/DepositForm";
-import WithdrawForm from "@/components/forms/WithdrawForm";
-import ContentFeed from "@/components/dashboard/ContentFeed";
+import UserDashboardView from "@/components/dashboard/UserDashboardView";
 import connectToDatabase from "@/lib/db";
+import User from "@/models/User";
 import Wallet from "@/models/Wallet";
 import Transaction from "@/models/Transaction";
+import Investment from "@/models/Investment";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import mongoose from "mongoose";
+
+export const dynamic = "force-dynamic";
 
 async function getData() {
     const session = await getServerSession(authOptions);
-    if (!session) return null;
+    if (!session?.user?.id) return null;
 
     await connectToDatabase();
-    const [wallet, transactions] = await Promise.all([
-        Wallet.findOne({ userId: session.user.id }),
-        Transaction.find({ userId: session.user.id }).sort({ createdAt: -1 }).limit(10).lean(),
+
+    // Convert session ID to ObjectId for robust querying
+    const userId = new mongoose.Types.ObjectId(session.user.id);
+
+    // 1. Fetch All Related Data
+    const [wallet, transactions, user, totalReferrals, allInvestments] = await Promise.all([
+        Wallet.findOne({ userId }),
+        Transaction.find({ userId }).sort({ createdAt: -1 }).limit(10).lean(),
+        User.findById(userId),
+        User.countDocuments({ referredBy: userId }),
+        Investment.find({ userId }).lean(), // Find ALL investments to be sure
     ]);
 
-    return { wallet, transactions };
+    console.log(`\n--- FINANCIAL AUDIT FOR ${user?.email} ---`);
+    console.log(`1. User ID in session: ${session.user.id}`);
+    console.log(`2. Wallet Found: ${wallet ? "YES" : "NO"}`);
+    if (wallet) {
+        console.log(`   - Principal: ${wallet.principal}, Locked: ${wallet.locked}, Legacy Bal: ${wallet.balance}`);
+    }
+    console.log(`3. Total Investments in DB: ${allInvestments.length}`);
+
+    // 2. SELF-HEALING: If ledger says X but wallet says Y, fix it now.
+    if (wallet) {
+        let needsUpdate = false;
+
+        // Sum from Ledger
+        const ledgerPrincipal = allInvestments.filter(i => i.plan === 'FLEXI' && i.isActive).reduce((s, i) => s + i.amount, 0);
+        const ledgerLocked = allInvestments.filter(i => i.plan !== 'FLEXI' && i.isActive).reduce((s, i) => s + i.amount, 0);
+
+        if (wallet.principal < ledgerPrincipal) {
+            console.log(`[FIX] Principal desync: ${wallet.principal} -> ${ledgerPrincipal}`);
+            wallet.principal = ledgerPrincipal;
+            needsUpdate = true;
+        }
+        if (wallet.locked < ledgerLocked) {
+            console.log(`[FIX] Locked desync: ${wallet.locked} -> ${ledgerLocked}`);
+            wallet.locked = ledgerLocked;
+            needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+            await wallet.save();
+            console.log(`[FIX] Wallet successfully synchronized with Investment Ledger.`);
+        }
+    }
+
+    return {
+        wallet: wallet ? JSON.parse(JSON.stringify(wallet.toObject())) : null,
+        transactions: JSON.parse(JSON.stringify(transactions)),
+        user: user ? JSON.parse(JSON.stringify(user.toObject())) : null,
+        totalReferrals
+    };
 }
 
 export default async function DashboardPage() {
@@ -27,114 +75,7 @@ export default async function DashboardPage() {
     if (!session) redirect("/login");
 
     const data = await getData();
-    const wallet = data?.wallet;
-    const transactions = data?.transactions;
+    if (!data) return <div className="p-8 text-center text-red-500 font-bold bg-[#0F172A] min-h-screen">Data Integrity Error: User has no wallet session.</div>;
 
-    return (
-        <div className="min-h-screen bg-gray-50 dark:bg-black">
-            <Navbar />
-            <main className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold mb-6">User Dashboard</h1>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    {/* Balance Card */}
-                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" /><path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" /></svg>
-                        </div>
-                        <h3 className="text-gray-500 font-medium mb-2">Total Balance</h3>
-                        <p className="text-4xl font-bold tracking-tight text-blue-600">
-                            ₹{(wallet?.balance || 0).toLocaleString()}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-2">Available for withdrawal</p>
-                    </div>
-
-                    {/* Profit Card */}
-                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm">
-                        <h3 className="text-gray-500 font-medium mb-2">Total Profit Earned</h3>
-                        <p className="text-4xl font-bold tracking-tight text-green-500">
-                            +₹{(wallet?.totalProfit || 0).toLocaleString()}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-2">Lifetime earnings</p>
-                    </div>
-
-                    {/* Deposit Form */}
-                    <DepositForm />
-
-                    {/* Withdraw Form */}
-                    <WithdrawForm />
-                </div>
-
-                {/* Content Feed Section */}
-                <div className="mb-8">
-                    <h2 className="text-xl font-bold mb-4">Market Insights & Updates</h2>
-                    <ContentFeed />
-                </div>
-
-                {/* Recent Transactions Placeholder */}
-                {/* Recent Transactions */}
-                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm p-6">
-                    <h2 className="text-xl font-bold mb-4">Recent Activity</h2>
-                    {transactions && transactions.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead>
-                                    <tr className="border-b dark:border-zinc-800 text-gray-500">
-                                        <th className="pb-3 font-medium">Date</th>
-                                        <th className="pb-3 font-medium">Type</th>
-                                        <th className="pb-3 font-medium">Description</th>
-                                        <th className="pb-3 font-medium text-right">Amount</th>
-                                        <th className="pb-3 font-medium text-right">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y dark:divide-zinc-800">
-                                    {transactions.map((t: any) => (
-                                        <tr key={t._id} className="group hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition">
-                                            <td className="py-3 text-gray-500">
-                                                {new Date(t.createdAt).toLocaleDateString()}
-                                            </td>
-                                            <td className="py-3 font-medium">
-                                                <span
-                                                    className={`px-2 py-1 rounded-full text-xs ${t.type === "DEPOSIT"
-                                                        ? "bg-green-100 text-green-700"
-                                                        : t.type === "PROFIT"
-                                                            ? "bg-blue-100 text-blue-700"
-                                                            : "bg-orange-100 text-orange-700"
-                                                        }`}
-                                                >
-                                                    {t.type}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 text-gray-600 dark:text-gray-400 max-w-xs truncate" title={t.description}>
-                                                {t.description || "-"}
-                                            </td>
-                                            <td
-                                                className={`py-3 text-right font-bold ${t.type === "DEPOSIT" || t.type === "PROFIT"
-                                                    ? "text-green-600"
-                                                    : "text-red-600"
-                                                    }`}
-                                            >
-                                                {t.type === "DEPOSIT" || t.type === "PROFIT" ? "+" : "-"}₹
-                                                {t.amount.toLocaleString()}
-                                            </td>
-                                            <td className="py-3 text-right">
-                                                <span className={`text-xs uppercase font-bold ${t.status === 'SUCCESS' ? 'text-green-500' : 'text-orange-500'
-                                                    }`}>
-                                                    {t.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <div className="text-center py-8 text-gray-400">
-                            No transactions found. Start by adding funds!
-                        </div>
-                    )}
-                </div>
-            </main>
-        </div>
-    );
+    return <UserDashboardView data={data} />;
 }

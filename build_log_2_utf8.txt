@@ -1,0 +1,44 @@
+﻿
+> investhub@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.1 (Turbopack)
+- Environments: .env.local
+
+node.exe : ΓÜá The "middleware" file convention is 
+deprecated. Please use "proxy" instead. Learn more: 
+https://nextjs.org/docs/messages/middleware-to-proxy
+At C:\Program Files\nodejs\npm.ps1:29 char:3
++   & $NODE_EXE $NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ΓÜá The  
+   "middle...leware-to-proxy:String) [], RemoteExcep  
+  tion
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 12.8s
+  Running TypeScript ...
+Failed to compile.
+
+./src/app/(auth)/reset-password/page.tsx:11:19
+Type error: 'searchParams' is possibly 'null'.
+
+[0m [90m  9 |[39m     [36mconst[39m searchParams 
+[33m=[39m useSearchParams()[33m;[39m
+ [90m 10 |[39m     [36mconst[39m router 
+[33m=[39m useRouter()[33m;[39m
+[31m[1m>[22m[39m[90m 11 |[39m     
+[36mconst[39m token [33m=[39m searchParams[33m.[
+39m[36mget[39m([32m"token"[39m)[33m;[39m
+ [90m    |[39m                   
+[31m[1m^[22m[39m
+ [90m 12 |[39m
+ [90m 13 |[39m     [36mconst[39m 
+[password[33m,[39m setPassword] [33m=[39m 
+useState([32m""[39m)[33m;[39m
+ [90m 14 |[39m     [36mconst[39m 
+[confirmPassword[33m,[39m setConfirmPassword] 
+[33m=[39m useState([32m""[39m)[33m;[39m[0m
+Next.js build worker exited with code: 1 and signal: 
+null

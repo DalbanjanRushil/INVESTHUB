@@ -43,11 +43,17 @@ export async function POST(req: Request) {
         const role = userCount === 0 ? UserRole.ADMIN : UserRole.USER;
 
         // --- FEATURE 2: REFERRAL SYSTEM ---
-        const referralCode = name.substring(0, 3).toUpperCase() + Math.floor(1000 + Math.random() * 9000); // RUSH1234
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        const referralCode = `INVEST-HUB-${randomSuffix}`;
 
         let referrerId = null;
         if (body.referralCode) {
-            const referrer = await User.findOne({ referralCode: body.referralCode });
+            // Robust Lookup: Trim whitespace, Case-insensitive match
+            const cleanCode = body.referralCode.trim();
+            const referrer = await User.findOne({
+                referralCode: { $regex: new RegExp(`^${cleanCode}$`, "i") }
+            });
+
             if (referrer) {
                 referrerId = referrer._id;
             }
@@ -63,6 +69,7 @@ export async function POST(req: Request) {
         });
 
         // 5. Create Wallet for User
+        // 5. Create Wallet for User
         await Wallet.create({
             userId: newUser._id,
             balance: 0,
@@ -70,6 +77,23 @@ export async function POST(req: Request) {
             totalWithdrawn: 0,
             totalProfit: 0,
         });
+
+        // --- SEND WELCOME EMAIL ---
+        const { sendEmail } = await import("@/lib/email");
+        sendEmail({
+            to: email,
+            subject: "Welcome to InvestHub! 🚀",
+            html: `
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                    <h1>Welcome, ${name}!</h1>
+                    <p>You have successfully created your account on InvestHub.</p>
+                    <p>Your referral code is: <strong>${referralCode}</strong></p>
+                    <p>Start investing today and watch your dashboard for daily growth.</p>
+                    <br>
+                    <p>Best,<br>InvestHub Team</p>
+                </div>
+            `
+        }).catch(err => console.error("Failed to send welcome email:", err));
 
         return NextResponse.json(
             { message: "User registered successfully", userId: newUser._id },

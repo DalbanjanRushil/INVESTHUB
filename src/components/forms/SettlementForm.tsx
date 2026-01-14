@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Loader2, Landmark } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { toast } from "sonner";
+
 export default function SettlementForm() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -28,10 +30,10 @@ export default function SettlementForm() {
                 throw new Error(data.error || "Failed to run settlement");
             }
 
-            alert(`Settlement Complete! Created ${data.stats.count} withdrawal requests totaling ₹${data.stats.totalAmount}`);
+            toast.success(`Settlement Complete! Created ${data.stats.count} withdrawal requests totaling ₹${data.stats.totalAmount}`);
             router.refresh();
         } catch (err: any) {
-            alert(err.message);
+            toast.error(err.message);
         } finally {
             setLoading(false);
         }

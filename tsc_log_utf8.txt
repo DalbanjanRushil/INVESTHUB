@@ -1,0 +1,12 @@
+﻿src/app/api/user/profile/route.ts(17,16): error TS18047: 'user' is possibly 'null'.
+src/components/investments/AllocationChart.tsx(65,29): error TS2322: Type 'AllocationItem[]' is not assignable to type 'ChartDataInput[]'.
+  Type 'AllocationItem' is not assignable to type 'ChartDataInput'.
+    Index signature for type 'string' is missing in type 'AllocationItem'.
+src/components/layout/SidebarLayout.tsx(48,21): error TS18047: 'pathname' is possibly 'null'.
+src/components/layout/SidebarLayout.tsx(54,21): error TS18047: 'pathname' is possibly 'null'.
+src/components/layout/SidebarLayout.tsx(60,21): error TS18047: 'pathname' is possibly 'null'.
+src/components/layout/SidebarLayout.tsx(66,21): error TS18047: 'pathname' is possibly 'null'.
+src/components/layout/SidebarLayout.tsx(72,21): error TS18047: 'pathname' is possibly 'null'.
+src/components/layout/SidebarLayout.tsx(88,21): error TS18047: 'pathname' is possibly 'null'.
+src/components/layout/SidebarLayout.tsx(94,21): error TS18047: 'pathname' is possibly 'null'.
+src/components/layout/SidebarLayout.tsx(100,21): error TS18047: 'pathname' is possibly 'null'.

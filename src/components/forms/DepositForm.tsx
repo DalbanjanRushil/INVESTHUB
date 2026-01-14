@@ -12,6 +12,8 @@ declare global {
     }
 }
 
+import { toast } from "sonner";
+
 export default function DepositModal() {
     const [amount, setAmount] = useState<string>("");
     const [loading, setLoading] = useState(false);
@@ -19,7 +21,7 @@ export default function DepositModal() {
 
     const handlePayment = async () => {
         if (!amount || Number(amount) <= 0) {
-            alert("Please enter a valid amount");
+            toast.error("Please enter a valid amount");
             return;
         }
 
@@ -61,15 +63,15 @@ export default function DepositModal() {
                         });
 
                         if (verifyRes.ok) {
-                            alert("Deposit Successful!");
+                            toast.success("Deposit Successful!");
                             setAmount("");
                             router.refresh(); // Refresh dashboard data
                         } else {
-                            alert("Payment verification failed.");
+                            toast.error("Payment verification failed.");
                         }
                     } catch (err) {
                         console.error(err);
-                        alert("Error verifying payment");
+                        toast.error("Error verifying payment");
                     }
                 },
                 prefill: {
@@ -85,7 +87,7 @@ export default function DepositModal() {
             rzp1.open();
         } catch (err: any) {
             console.error(err);
-            alert(err.message);
+            toast.error(err.message);
         } finally {
             setLoading(false);
         }

@@ -79,6 +79,25 @@ export async function POST(req: Request) {
             isRead: false,
         });
 
+        // 5. Real-time Update (Socket)
+        const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+        try {
+            fetch(`${baseUrl}/api/socket/emit`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    event: `user:${withdrawal.userId}:update`,
+                    data: {
+                        type: "WITHDRAWAL_UPDATE",
+                        status: action,
+                        amount: withdrawal.amount
+                    }
+                })
+            }).catch(e => console.error("Socket emit fetch failed", e));
+        } catch (e) {
+            console.error("Socket Emit Error", e);
+        }
+
         return NextResponse.json(
             { message: `Withdrawal ${action.toLowerCase()}ed successfully` },
             { status: 200 }

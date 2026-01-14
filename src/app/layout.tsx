@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import AuthContext from "@/components/providers/SessionProvider";
+import Providers from "@/components/providers/Providers";
 import { cn } from "@/lib/utils";
+import { Toaster } from "sonner";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: "InvestHub | Academic Fintech Simulation",
@@ -18,8 +20,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={cn(inter.className, "antialiased min-h-screen bg-background text-foreground")}>
-        <AuthContext>{children}</AuthContext>
+      <body className={cn(
+        inter.variable,
+        jetbrainsMono.variable,
+        "antialiased min-h-screen bg-background text-foreground font-sans"
+      )}>
+        <Providers>
+          {children}
+          <Toaster richColors position="top-center" theme="dark" closeButton />
+        </Providers>
       </body>
     </html>
   );

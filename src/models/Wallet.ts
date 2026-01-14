@@ -2,8 +2,17 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IWallet extends Document {
     userId: mongoose.Types.ObjectId;
-    balance: number; // Principal (Compounded)
-    payoutWalletBalance: number; // Withdrawable Profits
+
+    // Multi-Wallet Separation
+    principal: number;   // Deposited Capital
+    profit: number;      // ROI Earnings (can be withdrawn or compounded)
+    referral: number;    // Commissions
+    locked: number;      // Pending Withdrawals/Investments
+
+    // Legacy/Virtual
+    balance?: number;    // DEPRECATED: Virtual helper for Total Equity
+
+    // Stats
     totalDeposited: number;
     totalWithdrawn: number;
     totalProfit: number;
@@ -17,30 +26,19 @@ const WalletSchema = new Schema<IWallet>(
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true,
-            unique: true, // 1:1 relationship
+            unique: true,
         },
-        balance: {
-            type: Number,
-            default: 0,
-            min: 0,
-        },
-        payoutWalletBalance: {
-            type: Number,
-            default: 0,
-            min: 0,
-        },
-        totalDeposited: {
-            type: Number,
-            default: 0,
-        },
-        totalWithdrawn: {
-            type: Number,
-            default: 0,
-        },
-        totalProfit: {
-            type: Number,
-            default: 0,
-        },
+        principal: { type: Number, default: 0, min: 0 },
+        profit: { type: Number, default: 0, min: 0 },
+        referral: { type: Number, default: 0, min: 0 },
+        locked: { type: Number, default: 0, min: 0 },
+
+        totalDeposited: { type: Number, default: 0 },
+        totalWithdrawn: { type: Number, default: 0 },
+        totalProfit: { type: Number, default: 0 },
+
+        // Legacy Field (Restored for migration)
+        balance: { type: Number, default: 0 },
     },
     {
         timestamps: true,
