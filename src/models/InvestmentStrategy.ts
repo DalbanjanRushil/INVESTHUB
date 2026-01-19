@@ -62,6 +62,6 @@ const InvestmentStrategySchema = new Schema<IInvestmentStrategy>(
 // Prevent model overwrite in hot-reload
 const InvestmentStrategy: Model<IInvestmentStrategy> =
     mongoose.models.InvestmentStrategy ||
-    mongoose.model<IInvestmentStrategy>("InvestmentStrategy", InvestmentStrategySchema);
+    mongoose.model<IInvestmentStrategy>("InvestmentStrategy", InvestmentStrategySchema, "investment_strategies");
 
 export default InvestmentStrategy;

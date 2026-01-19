@@ -86,18 +86,27 @@ export default function FinancialActions({ preference: initialPref }: FinancialA
                         });
 
                         if (verifyRes.ok) {
+                            const data = await verifyRes.json();
+                            if (data.success !== undefined && !data.success) {
+                                throw new Error(data.error || "Verification failed logically");
+                            }
+
                             toast.success("Deposit Successful! Funds added to your wallet.");
                             setAmount("");
                             setActiveModal(null);
                             router.refresh();
+                            // Backup refresh to ensure DB consistency if primary was too fast
+                            setTimeout(() => router.refresh(), 2000);
                         } else {
                             const errorData = await verifyRes.json();
                             toast.error(errorData.error || "Verification failed");
                         }
-                    } catch (err) {
-                        toast.error("Error verifying payment");
-                    } finally {
+                    } catch (err: any) {
+                        toast.error(err.message || "Error verifying payment");
+                        // Keep modal open so they can retry or see error
                         setVerifying(false);
+                    } finally {
+                        if (activeModal === null) setVerifying(false);
                     }
                 },
                 modal: {
@@ -140,6 +149,14 @@ export default function FinancialActions({ preference: initialPref }: FinancialA
         }
     };
 
+    // --- Helper to Open Modal Cleanly ---
+    const openModal = (type: "DEPOSIT" | "WITHDRAW") => {
+        setProcessing(false);
+        setVerifying(false);
+        setAmount("");
+        setActiveModal(type);
+    };
+
     return (
         <>
             <Script id="razorpay-checkout" src="https://checkout.razorpay.com/v1/checkout.js" />
@@ -147,7 +164,7 @@ export default function FinancialActions({ preference: initialPref }: FinancialA
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 {/* Button 1: Add Funds */}
                 <button
-                    onClick={() => setActiveModal("DEPOSIT")}
+                    onClick={() => openModal("DEPOSIT")}
                     className="group relative h-14 w-full overflow-hidden rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg transition-transform hover:-translate-y-1 hover:shadow-emerald-500/25 active:scale-95"
                 >
                     <div className="flex items-center justify-center gap-3">
@@ -162,7 +179,7 @@ export default function FinancialActions({ preference: initialPref }: FinancialA
 
                 {/* Button 2: Withdraw */}
                 <button
-                    onClick={() => setActiveModal("WITHDRAW")}
+                    onClick={() => openModal("WITHDRAW")}
                     className="group relative h-14 w-full overflow-hidden rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg transition-transform hover:-translate-y-1 hover:shadow-blue-500/25 active:scale-95"
                 >
                     <div className="flex items-center justify-center gap-3">

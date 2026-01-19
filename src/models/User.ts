@@ -89,6 +89,6 @@ const UserSchema = new Schema<IUser>(
 );
 
 // Prevent model overwrite in hot-reload
-const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
+const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>("User", UserSchema, "users");
 
 export default User;

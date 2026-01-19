@@ -72,6 +72,6 @@ const KYCSchema = new Schema<IKYC>(
     }
 );
 
-const KYC: Model<IKYC> = mongoose.models.KYC || mongoose.model<IKYC>("KYC", KYCSchema);
+const KYC: Model<IKYC> = mongoose.models.KYC || mongoose.model<IKYC>("KYC", KYCSchema, "kyc_requests");
 
 export default KYC;

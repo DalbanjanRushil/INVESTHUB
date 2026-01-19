@@ -6,9 +6,13 @@ import Transaction from "@/models/Transaction";
 import { ArrowUpRight, ArrowDownRight, Clock, CheckCircle, AlertCircle, Filter, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import mongoose from "mongoose";
+
+export const dynamic = "force-dynamic";
+
 async function getTransactions(userId: string) {
     await connectToDatabase();
-    const transactions = await Transaction.find({ userId }).sort({ createdAt: -1 }).lean();
+    const transactions = await Transaction.find({ userId: new mongoose.Types.ObjectId(userId) }).sort({ createdAt: -1 }).lean();
     return JSON.parse(JSON.stringify(transactions));
 }
 

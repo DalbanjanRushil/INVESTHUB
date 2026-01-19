@@ -6,6 +6,7 @@ import User, { UserRole } from "@/models/User";
 import Wallet from "@/models/Wallet";
 import Withdrawal, { WithdrawalStatus } from "@/models/Withdrawal";
 import Transaction, { TransactionType } from "@/models/Transaction";
+import Investment from "@/models/Investment";
 import { z } from "zod";
 import mongoose from "mongoose";
 
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
 
         await connectToDatabase();
 
-        // 1. Fetch ALL wallets (We check everyone)
+        // 1. Fetch ALL wallets & Investments
         const wallets = await Wallet.find({}).populate("userId", "name email");
 
         if (wallets.length === 0) {
@@ -41,39 +42,53 @@ export async function POST(req: Request) {
         const bulkWalletOps = [];
         const bulkWithdrawalOps = [];
         const bulkTransactionOps = [];
+        const bulkInvestmentOps = [];
 
         // Import locally
         const { sendEmail } = await import("@/lib/email");
 
         let totalSettledAmount = 0;
-        console.log(`[Settlement] STARTING. Min Balance to Keep: ${minBalance}`);
+        console.log(`[Full Settlement] STARTING. Min Balance to Keep: ${minBalance}`);
 
         for (const wallet of wallets) {
             const user = wallet.userId as any;
             if (!user || !user._id) continue;
 
-            // --- SIMPLIFIED LOGIC ---
-            // "Access Funds" (Excess Funds) = Current Total Liquid Balance - Min Balance
-            // Liquid Balance = Profit Wallet + Principal Wallet (Compounded)
-            // We DO NOT touch Locked Funds (Investments).
-
+            // 1. Calculate Current Liquid Funds (Profit + Principal)
             const currentPrincipal = wallet.principal || 0;
             const currentProfit = wallet.profit || 0;
+            const currentLocked = wallet.locked || 0;
 
-            const totalLiquidAssets = currentPrincipal + currentProfit;
-            const excessFunds = totalLiquidAssets - minBalance;
+            // 2. Calculate Active Investment Value (Funds currently in market)
+            const activeInvestments = await Investment.find({
+                userId: user._id,
+                isActive: true
+            });
 
-            console.log(`[Settlement] User ${user.email} | Liquid: ${totalLiquidAssets} (Prin: ${currentPrincipal}, Prof: ${currentProfit}) | Excess: ${excessFunds}`);
+            let investmentLiquidationAmount = 0;
+            const investmentIdsToClose = [];
+
+            for (const inv of activeInvestments) {
+                investmentLiquidationAmount += inv.amount;
+                investmentIdsToClose.push(inv._id);
+            }
+
+            // 3. Total Dispersible Assets = Liquid + Locked(In Market)
+            // We use 'investmentLiquidationAmount' as the source of truth for investment closing.
+            // FIX: Use investmentLiquidationAmount instead of wallet.locked because wallet might be desync.
+
+            const totalAssets = currentPrincipal + currentProfit + investmentLiquidationAmount;
+            const excessFunds = totalAssets - minBalance;
+
+            console.log(`[Full Settlement] User ${user.email} | Total Assets: ${totalAssets} (RealLocked: ${investmentLiquidationAmount}) | Excess: ${excessFunds}`);
 
             if (excessFunds < 1) {
-                // Not enough excess funds to withdraw
                 continue;
             }
 
-            // Format to 2 decimals
             const grossAmount = Number(excessFunds.toFixed(2));
 
-            // Calculate Tax (If applicable)
+            // Tax Calculation (1% > 50k)
             const SURCHARGE_THRESHOLD = 50000;
             const SURCHARGE_RATE = 0.01;
             let taxDeducted = 0;
@@ -87,30 +102,39 @@ export async function POST(req: Request) {
             if (netPay > 0) {
                 totalSettledAmount += netPay;
 
-                // Deduct from Wallet (Priority: Profit -> Principal)
-                let fromProfit = 0;
-                let fromPrincipal = 0;
+                // Operation: ZERO OUT EVERYTHING (except minBalance if any)
+                // We simply set fields to 0 (or appropriately distributed if minBalance > 0)
 
-                if (currentProfit >= grossAmount) {
-                    fromProfit = grossAmount;
-                } else {
-                    fromProfit = currentProfit;
-                    fromPrincipal = grossAmount - currentProfit;
-                }
-
-                // Operation
                 bulkWalletOps.push({
                     updateOne: {
                         filter: { _id: wallet._id },
                         update: {
+                            $set: {
+                                profit: 0,
+                                principal: minBalance, // Leave min balance in principal
+                                locked: 0, // Liquidate all locked funds
+                            },
                             $inc: {
-                                profit: -fromProfit,
-                                principal: -fromPrincipal,
                                 totalWithdrawn: grossAmount
                             }
                         }
                     }
                 });
+
+                // Close all active investments
+                if (investmentIdsToClose.length > 0) {
+                    bulkInvestmentOps.push({
+                        updateMany: {
+                            filter: { _id: { $in: investmentIdsToClose } },
+                            update: {
+                                $set: {
+                                    isActive: false,
+                                    maturityDate: now // Closed today
+                                }
+                            }
+                        }
+                    });
+                }
 
                 // Withdrawal Request
                 const withdrawalId = new mongoose.Types.ObjectId();
@@ -121,7 +145,7 @@ export async function POST(req: Request) {
                             userId: user._id,
                             amount: netPay,
                             status: WithdrawalStatus.PENDING,
-                            adminRemark: `Quarterly Settlement [Gross: ₹${grossAmount}, LiquidAsset Sweep]`,
+                            adminRemark: `Full Settlement [Gross: ₹${grossAmount}, Liquidation Included]`,
                             createdAt: now,
                             updatedAt: now,
                         }
@@ -138,32 +162,35 @@ export async function POST(req: Request) {
                             taxDeducted: taxDeducted,
                             referenceId: withdrawalId,
                             status: "PENDING",
-                            description: `Quarterly Settlement Sweep`,
+                            description: `Full Settlement (Portfolio Liquidation)`,
                             createdAt: now,
                             updatedAt: now,
                         }
                     }
                 });
 
-                // Email (Async)
+                // Email
                 sendEmail({
                     to: user.email,
-                    subject: "🏦 Quarterly Settlement (Fund Sweep)",
-                    html: `<p>Settled Excess Funds: ₹${netPay}</p>`
+                    subject: "🏦 Full Portfolio Settlement",
+                    html: `<p>Your full portfolio has been liquidated and settled. Withdrawal Amount: ₹${netPay}</p>`
                 }).catch(e => console.error("Email failed", e));
             }
         }
 
         // Execute
         if (bulkWalletOps.length > 0) {
-            console.log(`[Settlement] Executing for ${bulkWalletOps.length} users.`);
+            console.log(`[Full Settlement] Executing for ${bulkWalletOps.length} users.`);
             await Wallet.bulkWrite(bulkWalletOps);
             await Withdrawal.bulkWrite(bulkWithdrawalOps);
             await Transaction.bulkWrite(bulkTransactionOps);
+            if (bulkInvestmentOps.length > 0) {
+                await Investment.bulkWrite(bulkInvestmentOps);
+            }
         }
 
         return NextResponse.json({
-            message: "Settlement processing complete",
+            message: "Full settlement processing complete",
             stats: {
                 count: bulkWithdrawalOps.length,
                 totalAmount: Number(totalSettledAmount.toFixed(2))
@@ -171,7 +198,7 @@ export async function POST(req: Request) {
         });
 
     } catch (error: any) {
-        console.error("Settlement Error:", error);
+        console.error("Full Settlement Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

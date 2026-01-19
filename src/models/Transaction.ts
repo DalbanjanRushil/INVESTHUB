@@ -62,6 +62,6 @@ TransactionSchema.index({ userId: 1, createdAt: -1 });
 
 const Transaction: Model<ITransaction> =
     mongoose.models.Transaction ||
-    mongoose.model<ITransaction>("Transaction", TransactionSchema);
+    mongoose.model<ITransaction>("Transaction", TransactionSchema, "transactions");
 
 export default Transaction;

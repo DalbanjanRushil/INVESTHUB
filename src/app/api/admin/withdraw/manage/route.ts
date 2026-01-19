@@ -54,15 +54,16 @@ export async function POST(req: Request) {
             withdrawal.processedAt = new Date();
             await withdrawal.save();
 
-            // Refund Logic
+            // Refund Logic:
+            // Move funds back from 'locked' to 'principal' (Safest default)
+            // We do not know exactly if it came from profit or referral, but principal is liquid.
             await Wallet.findOneAndUpdate(
                 { userId: withdrawal.userId },
                 {
                     $inc: {
-                        balance: withdrawal.amount,
-                        totalWithdrawn: -withdrawal.amount // Revert the 'totalWithdrawn' metric if we incremented it earlier? 
-                        // In the withdraw API logic was: wallet.balance -= amount; wallet.totalWithdrawn += amount;
-                        // So yes, we should revert it.
+                        locked: -withdrawal.amount,
+                        principal: withdrawal.amount,
+                        totalWithdrawn: -withdrawal.amount
                     }
                 }
             );

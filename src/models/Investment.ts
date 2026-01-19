@@ -59,6 +59,6 @@ const InvestmentSchema = new Schema<IInvestment>(
     }
 );
 
-const Investment: Model<IInvestment> = mongoose.models.Investment || mongoose.model<IInvestment>("Investment", InvestmentSchema);
+const Investment: Model<IInvestment> = mongoose.models.Investment || mongoose.model<IInvestment>("Investment", InvestmentSchema, "investments");
 
 export default Investment;

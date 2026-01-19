@@ -29,6 +29,11 @@ async function getData() {
         Investment.find({ userId }).lean(), // Find ALL investments to be sure
     ]);
 
+    console.log(`[DashboardPage] Fetched ${transactions.length} transactions for User ${userId}`);
+    if (transactions.length > 0) {
+        console.log(`[DashboardPage] Most recent: ${transactions[0]._id} @ ${transactions[0].createdAt}`);
+    }
+
     console.log(`\n--- FINANCIAL AUDIT FOR ${user?.email} ---`);
     console.log(`1. User ID in session: ${session.user.id}`);
     console.log(`2. Wallet Found: ${wallet ? "YES" : "NO"}`);

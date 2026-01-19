@@ -17,7 +17,8 @@ interface UserDashboardViewProps {
 
 export default function UserDashboardView({ data }: UserDashboardViewProps) {
     const { wallet, transactions, user } = data;
-    const recentTransactions = transactions?.slice(0, 5) || [];
+    console.log("Dashboard received transactions:", transactions?.length, transactions?.[0]);
+    const recentTransactions = transactions?.slice(0, 7) || [];
 
     return (
         <div className="min-h-screen bg-[#0F172A] text-slate-200 font-sans selection:bg-emerald-500/30">

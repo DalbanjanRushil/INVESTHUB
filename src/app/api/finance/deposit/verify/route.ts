@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -7,6 +8,7 @@ import Wallet from "@/models/Wallet";
 import Transaction, { TransactionType } from "@/models/Transaction";
 import Investment from "@/models/Investment";
 import User from "@/models/User";
+import ErrorLog from "@/models/ErrorLog";
 import crypto from "crypto";
 import mongoose from "mongoose";
 
@@ -115,16 +117,7 @@ export async function POST(req: Request) {
             const updatedWallet = await Wallet.findOneAndUpdate(
                 { userId: targetUserId },
                 {
-                    $inc: incQuery,
-                    $setOnInsert: {
-                        principal: 0,
-                        profit: 0,
-                        referral: 0,
-                        locked: 0,
-                        balance: 0,
-                        totalProfit: 0,
-                        totalWithdrawn: 0
-                    }
+                    $inc: incQuery
                 },
                 { new: true, upsert: true }
             );
@@ -163,7 +156,7 @@ export async function POST(req: Request) {
                 console.error("[Verify] Socket Internal Error (Non-Fatal):", e);
             }
 
-            // --- FEATURE 2: REFERRAL BONUS ---
+            // --- REFERRAL BONUS ---
             console.log("[Verify] Checking Referrals...");
             try {
                 const user = await User.findById(targetUserId);
@@ -191,12 +184,9 @@ export async function POST(req: Request) {
                         });
                         console.log(`[Verify] Referral Bonus of ${bonusAmount} credited to ${referrerId}`);
                     }
-                } else {
-                    console.log("[Verify] No referrer.");
                 }
             } catch (err) { console.error("[Verify] Bonus Error:", err); }
 
-            console.log("[Verify] Completed Successfully.");
             return NextResponse.json({ message: "Verify Success", success: true }, { status: 200 });
         } else {
             deposit.status = DepositStatus.FAILED;
@@ -206,8 +196,19 @@ export async function POST(req: Request) {
         }
     } catch (error: any) {
         console.error("Verification Critical Error Stack:", error.stack);
-        console.error("Verification Critical Error Message:", error.message);
-        // Return 200 with error info to verify if it's hitting this block
+
+        // Persist Internal Error to DB
+        try {
+            await connectToDatabase();
+            await ErrorLog.create({
+                path: "/api/finance/deposit/verify",
+                error: error.message,
+                stack: error.stack
+            });
+        } catch (loggingErr) {
+            console.error("Failed to log error to DB:", loggingErr);
+        }
+
         return NextResponse.json({ error: "Internal Error", details: error.message, success: false }, { status: 200 });
     }
 }

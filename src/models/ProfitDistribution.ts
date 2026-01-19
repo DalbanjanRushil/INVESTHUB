@@ -43,7 +43,8 @@ const ProfitDistribution: Model<IProfitDistribution> =
     mongoose.models.ProfitDistribution ||
     mongoose.model<IProfitDistribution>(
         "ProfitDistribution",
-        ProfitDistributionSchema
+        ProfitDistributionSchema,
+        "profit_distributions"
     );
 
 export default ProfitDistribution;

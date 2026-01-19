@@ -12,6 +12,12 @@ interface AdminDashboardViewProps {
         poolCapital: number;
         pendingWithdrawals: number;
         pendingWithdrawalsList: any[];
+        pools?: {
+            FLEXI: number;
+            FIXED_3M: number;
+            FIXED_6M: number;
+            FIXED_1Y: number;
+        };
     };
 }
 
@@ -51,12 +57,17 @@ export default function AdminDashboardView({ stats }: AdminDashboardViewProps) {
                             <h2 className="text-4xl font-bold font-mono tracking-tighter tabular-nums text-white mt-2">
                                 ₹{stats.poolCapital.toLocaleString()}
                             </h2>
-                            <div className="mt-6 w-full h-1 bg-slate-800 rounded-full overflow-hidden">
-                                <div className="h-full bg-cyan-500 w-[70%] shadow-[0_0_10px_rgba(6,182,212,0.8)]" />
-                            </div>
-                            <div className="flex justify-between mt-2 text-[10px] text-slate-400 font-mono">
-                                <span>ALLOCATED: 70%</span>
-                                <span>RESERVE: 30%</span>
+                            <div className="mt-6 grid grid-cols-2 gap-4">
+                                <div className="p-3 bg-slate-900/50 rounded border border-slate-800">
+                                    <p className="text-[10px] text-emerald-400 font-bold uppercase mb-1">Flexi (Liquid)</p>
+                                    <p className="text-lg font-mono text-white">₹{stats.pools?.FLEXI?.toLocaleString() || 0}</p>
+                                </div>
+                                <div className="p-3 bg-slate-900/50 rounded border border-slate-800">
+                                    <p className="text-[10px] text-amber-400 font-bold uppercase mb-1">Locked (Fixed)</p>
+                                    <p className="text-lg font-mono text-white">
+                                        ₹{((stats.pools?.FIXED_3M || 0) + (stats.pools?.FIXED_6M || 0) + (stats.pools?.FIXED_1Y || 0)).toLocaleString()}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>

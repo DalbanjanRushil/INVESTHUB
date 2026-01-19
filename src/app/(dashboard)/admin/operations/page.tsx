@@ -1,5 +1,6 @@
 import ProfitDistributionForm from "@/components/forms/ProfitDistributionForm";
 import SettlementForm from "@/components/forms/SettlementForm";
+import FullSettlementForm from "@/components/forms/FullSettlementForm";
 import WithdrawalTable from "@/components/admin/WithdrawalTable";
 import connectToDatabase from "@/lib/db";
 import Withdrawal, { WithdrawalStatus } from "@/models/Withdrawal";
@@ -55,6 +56,8 @@ export default async function AdminOperationsPage() {
                             <ProfitDistributionForm />
                             <div className="h-px bg-slate-800 w-full" />
                             <SettlementForm />
+                            <div className="h-px bg-slate-800 w-full" />
+                            <FullSettlementForm />
                         </div>
                     </div>
                 </div>
