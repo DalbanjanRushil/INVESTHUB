@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -7,12 +8,16 @@ import Wallet from "@/models/Wallet";
 import Notification from "@/models/Notification";
 import { UserRole } from "@/models/User";
 import { z } from "zod";
+import { LedgerService } from "@/lib/services/LedgerService";
+import Transaction, { TransactionType, TransactionStatus } from "@/models/Transaction"; // Needed for ref lookup
 
 const actionSchema = z.object({
     withdrawalId: z.string(),
     action: z.enum(["APPROVE", "REJECT"]),
     remark: z.string().optional(),
 });
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
     try {
@@ -40,33 +45,49 @@ export async function POST(req: Request) {
             );
         }
 
-        // 3. Process Action
+        // 3. Process Action via Ledger
         if (action === "APPROVE") {
-            // Just mark as approved. Money was already deducted at request time.
-            withdrawal.status = WithdrawalStatus.APPROVED;
-            withdrawal.adminRemark = remark || "Approved by Admin";
-            withdrawal.processedAt = new Date();
-            await withdrawal.save();
-        } else if (action === "REJECT") {
-            // Mark as rejected AND REFUND the amount
-            withdrawal.status = WithdrawalStatus.REJECTED;
-            withdrawal.adminRemark = remark || "Rejected by Admin";
-            withdrawal.processedAt = new Date();
-            await withdrawal.save();
+            try {
+                // Execute Ledger Movement (Locked -> Admin Bank)
+                // We need the Transaction ID. 
+                // We can search for the transaction by referenceId.
+                const txn = await Transaction.findOne({ referenceId: withdrawal._id, type: TransactionType.WITHDRAWAL });
 
-            // Refund Logic:
-            // Move funds back from 'locked' to 'principal' (Safest default)
-            // We do not know exactly if it came from profit or referral, but principal is liquid.
-            await Wallet.findOneAndUpdate(
-                { userId: withdrawal.userId },
-                {
-                    $inc: {
-                        locked: -withdrawal.amount,
-                        principal: withdrawal.amount,
-                        totalWithdrawn: -withdrawal.amount
-                    }
-                }
-            );
+                // If using LedgerService.approveWithdrawal (which we customized for this):
+                await LedgerService.approveWithdrawal(withdrawalId, session.user.id, txn ? txn._id.toString() : "");
+
+                // Update Withdrawal Record
+                withdrawal.status = WithdrawalStatus.APPROVED;
+                withdrawal.adminRemark = remark || "Approved by Admin";
+                withdrawal.processedAt = new Date();
+                await withdrawal.save();
+
+                // Stats Update (Manually handled here as LedgerService focuses on Balances)
+                await Wallet.findOneAndUpdate(
+                    { userId: withdrawal.userId },
+                    { $inc: { totalWithdrawn: withdrawal.amount } }
+                );
+
+            } catch (err: any) {
+                console.error("Ledger Approval Failed:", err);
+                return NextResponse.json({ error: err.message }, { status: 500 });
+            }
+
+        } else if (action === "REJECT") {
+            try {
+                // Execute Ledger Movement (Locked -> Funds Returned)
+                await LedgerService.rejectWithdrawal(withdrawalId, session.user.id, remark || "Rejected by Admin");
+
+                // Update Withdrawal Record
+                withdrawal.status = WithdrawalStatus.REJECTED;
+                withdrawal.adminRemark = remark || "Rejected by Admin";
+                withdrawal.processedAt = new Date();
+                await withdrawal.save();
+
+            } catch (err: any) {
+                console.error("Ledger Rejection Failed:", err);
+                return NextResponse.json({ error: err.message }, { status: 500 });
+            }
         }
 
         // 4. Send Notification
@@ -75,7 +96,7 @@ export async function POST(req: Request) {
             title: `Withdrawal ${action === "APPROVE" ? "Approved" : "Rejected"}`,
             message:
                 action === "APPROVE"
-                    ? `Your withdrawal of ₹${withdrawal.amount} has been processed.`
+                    ? `Your withdrawal of ₹${withdrawal.amount} has been successfully processed.`
                     : `Your withdrawal request was rejected. Remark: ${remark || "N/A"}. Refund initiated.`,
             isRead: false,
         });

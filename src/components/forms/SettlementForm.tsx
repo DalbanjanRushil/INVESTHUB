@@ -40,38 +40,38 @@ export default function SettlementForm() {
     };
 
     return (
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm p-6">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Landmark className="w-5 h-5 text-purple-600" />
+        <div className="bg-[#0F172A] rounded-2xl border border-slate-800 shadow-xl p-6">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-white">
+                <Landmark className="w-5 h-5 text-purple-400" />
                 Quarterly Settlement
             </h3>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-slate-400 mb-4">
                 Automatically create withdrawal requests for users with balance above a threshold.
             </p>
 
             <form onSubmit={handleSettlement} className="space-y-4">
                 <div>
-                    <label className="text-xs font-semibold uppercase text-gray-500 mb-1 block">
+                    <label className="text-xs font-semibold uppercase text-slate-300 mb-1 block">
                         Minimum Wallet Balance To Keep (₹)
                     </label>
                     <input
                         type="number"
                         min="0"
-                        className="w-full px-3 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-lg"
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500/60 outline-none placeholder:text-slate-500"
                         placeholder="e.g. 0 to withdraw all"
                         value={threshold}
                         onChange={(e) => setThreshold(e.target.value)}
                     />
                 </div>
 
-                <div className="p-3 bg-purple-50 text-purple-700 rounded-lg text-xs">
+                <div className="p-3 bg-purple-500/10 border border-purple-500/20 text-purple-300 rounded-lg text-xs">
                     <strong>Note:</strong> Excess funds will be converted into PENDING withdrawal requests.
                 </div>
 
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2 bg-purple-600 text-white rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50 flex justify-center"
+                    className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50 flex justify-center"
                 >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Run Settlement"}
                 </button>

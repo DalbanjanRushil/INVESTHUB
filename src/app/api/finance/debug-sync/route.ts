@@ -1,11 +1,13 @@
+
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/db";
 import Wallet from "@/models/Wallet";
-import Investment from "@/models/Investment";
-import Deposit from "@/models/Deposit";
+import LedgerEntry, { LedgerAccountType, LedgerDirection } from "@/models/LedgerEntry";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import mongoose from "mongoose";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
     try {
@@ -15,49 +17,64 @@ export async function GET() {
         await connectToDatabase();
         const userId = new mongoose.Types.ObjectId(session.user.id);
 
-        console.log(`[Sync] Starting manual sync for user: ${userId}`);
+        console.log(`[Sync] Starting ledger reconciliation for user: ${userId}`);
 
-        // 1. Find all successful deposits for this user
-        const deposits = await Deposit.find({ userId, status: "SUCCESS" });
-
-        for (const dep of deposits) {
-            // Ensure Investment exists
-            const existingInv = await Investment.findOne({ sourceDepositId: dep._id });
-            if (!existingInv) {
-                await Investment.create({
-                    userId: dep.userId,
-                    amount: dep.amount,
-                    plan: dep.plan || "FLEXI",
-                    sourceDepositId: dep._id,
-                    isActive: true
-                });
+        // Aggregation Pipeline to calculate balances per Account Type
+        const balances = await LedgerEntry.aggregate([
+            { $match: { userId: userId } },
+            {
+                $group: {
+                    _id: "$accountType",
+                    totalCredits: {
+                        $sum: {
+                            $cond: [{ $eq: ["$direction", LedgerDirection.CREDIT] }, "$amount", 0]
+                        }
+                    },
+                    totalDebits: {
+                        $sum: {
+                            $cond: [{ $eq: ["$direction", LedgerDirection.DEBIT] }, "$amount", 0]
+                        }
+                    }
+                }
+            },
+            {
+                $project: {
+                    balance: { $subtract: ["$totalCredits", "$totalDebits"] }
+                }
             }
-        }
+        ]);
 
-        // 2. Recalculate from Ledger (Investments)
-        const allInvs = await Investment.find({ userId, isActive: true });
-        const principal = allInvs.filter(i => i.plan === "FLEXI").reduce((s, i) => s + i.amount, 0);
-        const locked = allInvs.filter(i => i.plan !== "FLEXI").reduce((s, i) => s + i.amount, 0);
+        let principal = 0;
+        let profit = 0;
+        let referral = 0;
+        let locked = 0;
 
-        // 3. Force Update Wallet
+        balances.forEach((b: any) => {
+            if (b._id === LedgerAccountType.PRINCIPAL) principal = b.balance;
+            else if (b._id === LedgerAccountType.PROFIT) profit = b.balance;
+            else if (b._id === LedgerAccountType.REFERRAL) referral = b.balance;
+            else if (b._id === LedgerAccountType.LOCKED) locked = b.balance;
+        });
+
+        // Force Update Wallet
         const updatedWallet = await Wallet.findOneAndUpdate(
             { userId },
             {
                 $set: {
                     principal,
+                    profit,
+                    referral,
                     locked,
-                    balance: 0 // Clear legacy field
                 }
             },
             { upsert: true, new: true }
         );
 
         return NextResponse.json({
-            message: "Success! Wallet synced with investment ledger.",
+            message: "Success! Wallet synced with Ledger.",
             details: {
-                principal: updatedWallet.principal,
-                locked: updatedWallet.locked,
-                investmentsCount: allInvs.length
+                wallet: updatedWallet,
+                ledgerBreakdown: balances
             }
         });
 

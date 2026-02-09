@@ -21,7 +21,6 @@ async function getAdminStats() {
             $project: {
                 liquidBalance: {
                     $add: [
-                        { $ifNull: ["$principal", 0] },
                         { $ifNull: ["$profit", 0] },
                         { $ifNull: ["$referral", 0] }
                     ]
@@ -100,6 +99,12 @@ async function getUserData(userIdStr: string) {
         if (wallet.profit === undefined) { wallet.profit = 0; isModified = true; }
         if (wallet.referral === undefined) { wallet.referral = 0; isModified = true; }
         if (wallet.locked === undefined) { wallet.locked = 0; isModified = true; }
+
+        // Negative Balance Fix (Self-Healing from Calculation Errors)
+        if ((wallet.principal || 0) < 0) { wallet.principal = 0; isModified = true; }
+        if ((wallet.profit || 0) < 0) { wallet.profit = 0; isModified = true; }
+        if ((wallet.referral || 0) < 0) { wallet.referral = 0; isModified = true; }
+        if ((wallet.locked || 0) < 0) { wallet.locked = 0; isModified = true; }
 
         if (activeInvestments && activeInvestments.length > 0) {
             const realLocked = activeInvestments

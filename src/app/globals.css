@@ -1,26 +1,44 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --radius-radius: var(--radius);
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-secondary: var(--color-bg-secondary);
+  --color-bg-surface: var(--color-bg-surface);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+
+  --color-accent-primary: var(--color-accent-primary);
+  --color-accent-secondary: var(--color-accent-secondary);
+  --color-danger: var(--color-danger);
+  --color-warning: var(--color-warning);
+
+  --color-border: var(--color-border);
+
+  /* Mapping standard Tailwind classes to our semantic tokens for backward compatibility where possible, 
+     or creating new utility classes */
+  --color-background: var(--color-bg-primary);
+  --color-foreground: var(--color-text-primary);
+  --color-card: var(--color-bg-surface);
+  --color-card-foreground: var(--color-text-primary);
+  --color-popover: var(--color-bg-surface);
+  --color-popover-foreground: var(--color-text-primary);
+  --color-primary: var(--color-accent-secondary);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-bg-secondary);
+  --color-secondary-foreground: var(--color-text-primary);
+  --color-muted: var(--color-bg-secondary);
+  --color-muted-foreground: var(--color-text-muted);
+  --color-accent: var(--color-bg-secondary);
+  --color-accent-foreground: var(--color-accent-secondary);
+  --color-destructive: var(--color-danger);
+  --color-destructive-foreground: #ffffff;
+  --color-input: var(--color-bg-surface);
+  --color-ring: var(--color-accent-secondary);
+
+  --radius-radius: 0.5rem;
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui;
   --font-mono: var(--font-mono), ui-monospace, SFMono-Regular;
 
@@ -43,93 +61,65 @@
 
 @layer base {
   :root {
-    /* Premium Color Palette - Updated to Spec */
-    /* Primary Background: Deep Navy */
-    --background: #F8FAFC;
-    /* High Contrast Text for Light Mode */
-    --foreground: #020617;
-    /* Very Dark Navy (Almost Black) */
-
-    /* Card Surfaces */
-    --card: #FFFFFF;
-    --card-foreground: #020617;
-
-    --popover: #FFFFFF;
-    --popover-foreground: #020617;
-
-    /* Primary: Electric Blue */
-    --primary: #2563EB;
-    /* Slightly darker blue for contrast */
-    --primary-foreground: #FFFFFF;
-
-    /* Secondary: Platinum */
-    --secondary: #F1F5F9;
-    --secondary-foreground: #0F172A;
+    /* Base Theme Tokens - Defaulting to Premium Dark */
+    --color-bg-primary: #0B1120;
+    /* Premium Dark Navy */
+    --color-bg-secondary: #0f172a;
     /* Slate 900 */
+    --color-bg-surface: #1e293b;
+    /* Slate 800 */
 
-    --muted: #F8FAFC;
-    --muted-foreground: #475569;
-    /* Slate 600 - darker than before */
+    --color-text-primary: #f8fafc;
+    /* Slate 50 */
+    --color-text-secondary: #94a3b8;
+    /* Slate 400 */
+    --color-text-muted: #64748b;
+    /* Slate 500 */
 
-    --accent: #F3F4F6;
-    --accent-foreground: #3B82F6;
+    --color-accent-primary: #10b981;
+    /* Emerald 500 */
+    --color-accent-secondary: #06b6d4;
+    /* Cyan 500 */
+    --color-danger: #ef4444;
+    --color-warning: #f59e0b;
 
-    /* Semantic Colors */
-    --destructive: #EF4444;
-    /* Crimson */
-    --destructive-foreground: #FFFFFF;
+    --color-border: #1e293b;
+    /* Slate 800 (Low contrast border) */
 
-    /* Custom Semantic Variables for Graphs/Status */
-    --success: #10B981;
-    /* Mint Green */
-    --warning: #F59E0B;
-    /* Amber */
-    --info: #3B82F6;
-    /* Electric Blue */
+    /* White/Black border for very subtle separators */
+    --color-border-subtle: rgba(255, 255, 255, 0.05);
 
-    --border: #E2E8F0;
-    --input: #E2E8F0;
-    --ring: #3B82F6;
-
-    --radius: 1rem;
+    /* Global Defaults */
+    --radius: 0.75rem;
+    /* More rounded 12px/xl look */
   }
 
-  .dark {
-    /* Deep Navy Theme (#0A1628) */
-    /* High Contrast Text for Dark Mode */
-    --background: #020617;
-    /* Slate 950 */
-    --foreground: #FFFFFF;
-    /* Pure White */
+  /* User Theme (Also Dark - Unified Premium Look) */
+  [data-theme="user"] {
+    --color-bg-primary: #0B1120;
+    --color-bg-secondary: #020617;
+    --color-bg-surface: #1e293b;
 
-    /* Elevated Surfaces: Charcoal (#1F2937) */
-    --card: #111827;
-    /* Gray 900 */
-    --card-foreground: #FFFFFF;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #94a3b8;
+    --color-text-muted: #475569;
 
-    --popover: #1F2937;
-    --popover-foreground: #F9FAFB;
+    --color-border: rgba(255, 255, 255, 0.08);
+    /* Glassy border */
+  }
 
-    /* Primary: Electric Blue */
-    --primary: #3B82F6;
-    --primary-foreground: #FFFFFF;
+  /* Admin Theme (Dark Mode - Potentially different accents if needed, but keeping base consistent) */
+  [data-theme="admin"] {
+    --color-bg-primary: #020617;
+    /* Slightly darker/blacker for Admin Command Center vibe */
+    --color-bg-secondary: #0f172a;
+    --color-bg-surface: #111827;
 
-    /* Secondary: Slate */
-    --secondary: #374151;
-    --secondary-foreground: #F9FAFB;
+    --color-text-primary: #f9fafb;
+    --color-text-secondary: #d1d5db;
+    --color-text-muted: #6b7280;
 
-    --muted: #374151;
-    --muted-foreground: #9CA3AF;
-
-    --accent: #374151;
-    --accent-foreground: #3B82F6;
-
-    --destructive: #EF4444;
-    --destructive-foreground: #FFFFFF;
-
-    --border: #374151;
-    --input: #374151;
-    --ring: #3B82F6;
+    --color-border: #1f2933;
   }
 }
 
@@ -140,27 +130,84 @@
 
   body {
     @apply bg-background text-foreground antialiased font-sans;
+    /* Enforce base styles */
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
   }
 
-  /* Applying Tabular Nums to JetBrains Mono classes */
-  .font-mono {
-    font-variant-numeric: tabular-nums;
+  /* Accessibility & Typography Standards */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-foreground font-bold tracking-tight;
+    color: var(--color-text-primary);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+  }
+
+  a {
+    @apply transition-colors;
+    color: var(--color-accent-secondary);
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+
+  /* Form Elements - Global Reset for Consistency */
+  input,
+  textarea,
+  select {
+    background-color: var(--color-bg-surface);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  /* Utilities for the new tokens */
+  .bg-primary-custom {
+    background-color: var(--color-bg-primary);
+  }
+
+  .bg-secondary-custom {
+    background-color: var(--color-bg-secondary);
+  }
+
+  .bg-surface {
+    background-color: var(--color-bg-surface);
+  }
+
+  .text-primary-custom {
+    color: var(--color-text-primary);
+  }
+
+  .text-secondary-custom {
+    color: var(--color-text-secondary);
+  }
+
+  .text-muted-custom {
+    color: var(--color-text-muted);
+  }
+
+  .border-custom {
+    border-color: var(--color-border);
   }
 }
 
-/* Glassmorphism Specs */
+/* Glassmorphism Classes maintained but updated with tokens */
 .glass-panel {
-  @apply bg-[#1F2937]/70 backdrop-blur-xl border border-white/10;
+  @apply backdrop-blur-xl border border-border;
+  background-color: color-mix(in srgb, var(--color-bg-surface) 70%, transparent);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-.hover-glass {
-  @apply transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/30;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.hover-glass:hover {
-  box-shadow: 0 12px 48px rgba(59, 130, 246, 0.15);
 }
 
 /* Custom Scrollbar */
@@ -173,7 +220,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--muted-foreground);
+  background: var(--color-text-muted);
   border-radius: 10px;
   opacity: 0.2;
 }

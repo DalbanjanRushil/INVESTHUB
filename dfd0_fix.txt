@@ -1,0 +1,16 @@
+              flowchart LR
+              %% Entities
+              User[User]
+              Admin[Admin]
+              System(("InvestHub Platform"))
+              Razorpay[Razorpay Gateway]
+              Email[Email Service]
+              Socket[Socket Service]
+
+              %% Interactions
+              User <-->|"Auth, Deposits, Withdrawals, Content"| System
+              Admin <-->|"Approvals, Updates, Content Mgmt"| System
+              
+              System <-->|"Payment Verification"| Razorpay
+              System -->|Notifications| Email
+              System -->|"Real-time Events"| Socket

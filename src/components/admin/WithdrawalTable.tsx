@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface WithdrawalRequest {
     _id: string;
@@ -18,8 +19,6 @@ interface WithdrawalRequest {
 interface Props {
     data: WithdrawalRequest[];
 }
-
-import { toast } from "sonner";
 
 export default function WithdrawalTable({ data }: Props) {
     const router = useRouter();
@@ -53,7 +52,7 @@ export default function WithdrawalTable({ data }: Props) {
 
     if (data.length === 0) {
         return (
-            <div className="text-center py-12 text-gray-500 bg-gray-50 dark:bg-zinc-800/50 rounded-lg border border-dashed border-gray-200 dark:border-zinc-700">
+            <div className="text-center py-12 text-muted-foreground bg-muted/50 rounded-lg border border-border">
                 No pending withdrawals found.
             </div>
         );
@@ -62,7 +61,7 @@ export default function WithdrawalTable({ data }: Props) {
     return (
         <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-                <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-zinc-800/50">
+                <thead className="text-xs text-muted-foreground uppercase bg-secondary border-b border-border">
                     <tr>
                         <th className="px-6 py-3">User</th>
                         <th className="px-6 py-3">Amount</th>
@@ -74,16 +73,16 @@ export default function WithdrawalTable({ data }: Props) {
                     {data.map((req) => (
                         <tr
                             key={req._id}
-                            className="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition"
+                            className="bg-card border-b border-border hover:bg-muted/50 transition"
                         >
-                            <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                            <td className="px-6 py-4 font-medium text-foreground">
                                 <div>{req.userId?.name || "Unknown"}</div>
-                                <div className="text-xs text-gray-500 font-normal">{req.userId?.email}</div>
+                                <div className="text-xs text-muted-foreground font-normal">{req.userId?.email}</div>
                             </td>
-                            <td className="px-6 py-4 font-bold text-orange-600">
+                            <td className="px-6 py-4 font-bold text-accent-primary">
                                 ₹{req.amount.toLocaleString()}
                             </td>
-                            <td className="px-6 py-4 text-gray-500">
+                            <td className="px-6 py-4 text-muted-foreground">
                                 {new Date(req.createdAt).toLocaleDateString()}
                             </td>
                             <td className="px-6 py-4 text-right">
@@ -91,7 +90,7 @@ export default function WithdrawalTable({ data }: Props) {
                                     <button
                                         onClick={() => handleAction(req._id, "APPROVE")}
                                         disabled={!!processingId}
-                                        className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition disabled:opacity-50"
+                                        className="p-2 text-accent-primary hover:bg-accent-primary/10 rounded-full transition disabled:opacity-50"
                                         title="Approve"
                                     >
                                         {processingId === req._id ? (
@@ -103,7 +102,7 @@ export default function WithdrawalTable({ data }: Props) {
                                     <button
                                         onClick={() => handleAction(req._id, "REJECT")}
                                         disabled={!!processingId}
-                                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition disabled:opacity-50"
+                                        className="p-2 text-destructive hover:bg-destructive/10 rounded-full transition disabled:opacity-50"
                                         title="Reject"
                                     >
                                         {processingId === req._id ? (

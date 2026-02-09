@@ -42,8 +42,8 @@ const UserSchema = new Schema<IUser>(
         },
         password: {
             type: String,
-            required: [true, "Password is required"], // STRICT: We need passwords for this simulation
-            select: false, // Do not return password by default
+            required: false, // Changed to false for OAuth (Google) support
+            select: false,
         },
         role: {
             type: String,

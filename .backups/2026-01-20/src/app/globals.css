@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-radius: var(--radius);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui;
+  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular;
+
+  --animate-bounce-slow: bounce-slow 8s infinite;
+
+  @keyframes bounce-slow {
+
+    0%,
+    100% {
+      transform: translateY(-8%);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    50% {
+      transform: translateY(8%);
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+  }
+}
+
+@layer base {
+  :root {
+    /* Premium Color Palette - Updated to Spec */
+    /* Primary Background: Deep Navy */
+    --background: #F8FAFC;
+    /* High Contrast Text for Light Mode */
+    --foreground: #020617;
+    /* Very Dark Navy (Almost Black) */
+
+    /* Card Surfaces */
+    --card: #FFFFFF;
+    --card-foreground: #020617;
+
+    --popover: #FFFFFF;
+    --popover-foreground: #020617;
+
+    /* Primary: Electric Blue */
+    --primary: #2563EB;
+    /* Slightly darker blue for contrast */
+    --primary-foreground: #FFFFFF;
+
+    /* Secondary: Platinum */
+    --secondary: #F1F5F9;
+    --secondary-foreground: #0F172A;
+    /* Slate 900 */
+
+    --muted: #F8FAFC;
+    --muted-foreground: #475569;
+    /* Slate 600 - darker than before */
+
+    --accent: #F3F4F6;
+    --accent-foreground: #3B82F6;
+
+    /* Semantic Colors */
+    --destructive: #EF4444;
+    /* Crimson */
+    --destructive-foreground: #FFFFFF;
+
+    /* Custom Semantic Variables for Graphs/Status */
+    --success: #10B981;
+    /* Mint Green */
+    --warning: #F59E0B;
+    /* Amber */
+    --info: #3B82F6;
+    /* Electric Blue */
+
+    --border: #E2E8F0;
+    --input: #E2E8F0;
+    --ring: #3B82F6;
+
+    --radius: 1rem;
+  }
+
+  .dark {
+    /* Deep Navy Theme (#0A1628) */
+    /* High Contrast Text for Dark Mode */
+    --background: #020617;
+    /* Slate 950 */
+    --foreground: #FFFFFF;
+    /* Pure White */
+
+    /* Elevated Surfaces: Charcoal (#1F2937) */
+    --card: #111827;
+    /* Gray 900 */
+    --card-foreground: #FFFFFF;
+
+    --popover: #1F2937;
+    --popover-foreground: #F9FAFB;
+
+    /* Primary: Electric Blue */
+    --primary: #3B82F6;
+    --primary-foreground: #FFFFFF;
+
+    /* Secondary: Slate */
+    --secondary: #374151;
+    --secondary-foreground: #F9FAFB;
+
+    --muted: #374151;
+    --muted-foreground: #9CA3AF;
+
+    --accent: #374151;
+    --accent-foreground: #3B82F6;
+
+    --destructive: #EF4444;
+    --destructive-foreground: #FFFFFF;
+
+    --border: #374151;
+    --input: #374151;
+    --ring: #3B82F6;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased font-sans;
+  }
+
+  /* Applying Tabular Nums to JetBrains Mono classes */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Glassmorphism Specs */
+.glass-panel {
+  @apply bg-[#1F2937]/70 backdrop-blur-xl border border-white/10;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.hover-glass {
+  @apply transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/30;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-glass:hover {
+  box-shadow: 0 12px 48px rgba(59, 130, 246, 0.15);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 10px;
+  opacity: 0.2;
+}

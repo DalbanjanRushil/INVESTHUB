@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# InvestHub - Wealth Management Simulation Platform
 
-## Getting Started
+**InvestHub** is a high-fidelity academic fintech simulation platform designed to model a profit-sharing investment ecosystem. It features a sophisticated dual-interface system (User & Admin) built with modern web technologies, ensuring a premium, secure, and responsive experience.
 
-First, run the development server:
+## 🚀 Tech Stack
+
+- **Framework:** [Next.js 14+](https://nextjs.org/) (App Router)
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) (Custom Premium Dark Theme `0B1120`)
+- **Database:** [MongoDB](https://www.mongodb.com/) (via Mongoose)
+- **Authentication:** [NextAuth.js](https://next-auth.js.org/) (Credentials w/ Role-Based Access)
+- **Real-time:** Custom Polling / Socket.io (ready for integration)
+- **Validation:** [Zod](https://zod.dev/)
+
+---
+
+## ✨ Key Features
+
+### 🔐 Authentication & Security
+- **Role-Based Access Control (RBAC):** Distinct flows for `USER` and `ADMIN` roles.
+- **Secure Login:** Encrypted passwords (bcrypt) and protected routes.
+- **Session Management:** Robust session handling with automatic redirections.
+- **Safety:** Optimistic Concurrency Control (OCC) for withdrawals to prevent double-spending.
+
+### 👤 User Dashboard
+- **Portfolio Overview:** Real-time visibility of Principal, Profit, and Referral bonuses.
+- **Investment Management:** View active `FLEXI` and `LOCKED` (Fixed Deposit) plans.
+- **Financial Actions:** Seamless UI for Deposits and Withdrawals.
+- **Transaction History:** Detailed logs of all financial movements.
+- **Dark Mode UI:** A consistent, premium navy-dark aesthetic.
+
+### 🛡️ Admin Command Center
+- **Dashboard Toggle:** Instantly switch between Admin stats and a simulated User View.
+- **Capital Management:** Monitor total pool capital, user count, and active investments.
+- **Settlement Engine:**
+  - **Full Liquidation:** Atomic execution to settle User Wallets + Investments safely.
+  - **Profit Distribution:** Bulk distribute profits based on User Principal (smartly excluding uninvested balance).
+- **Strategy Manager:** Create and manage lock-in plans (3M, 6M, 1Y).
+- **Content Studio:** Upload and manage educational resources (PDFs, Videos).
+- **User Operations:** View detailed user audits and fix balance desyncs automatically (Self-Healing Ledger).
+
+---
+
+## 📂 Project Structure
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+src/
+├── app/
+│   ├── (auth)/             # Login, Register, Forgot Password
+│   ├── (dashboard)/        # Protected User & Admin Routes
+│   │   ├── admin/          # Admin-specific pages (Command Center)
+│   │   └── dashboard/      # User Portfolio
+│   ├── api/                # Backend API Routes (Next.js serverless)
+│   │   ├── admin/          # Settlement, Distribution, Content APIs
+│   │   └── finance/        # Withdrawal, Investment APIs
+│   └── page.tsx            # Landing Page
+├── components/
+│   ├── admin/              # Admin widgets (Toggle, Strategy, Stats)
+│   ├── dashboard/          # User widgets (Hero, Actions, Charts)
+│   ├── layout/             # Navbar, Sidebar, Shell
+│   └── providers/          # Context Providers (Auth, Theme)
+├── lib/                    # Utilities (DB Connect, Auth Options, Helpers)
+└── models/                 # Mongoose Schemas (User, Wallet, Investment, Transaction)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Setup & Installation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/your-username/investhub.git
+    cd investhub
+    ```
 
-## Learn More
+2.  **Install Dependencies**
+    ```bash
+    npm install
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+3.  **Environment Variables**
+    Create a `.env.local` file:
+    ```env
+    MONGODB_URI=mongodb+srv://...
+    NEXTAUTH_SECRET=your_secret_key
+    NEXTAUTH_URL=http://localhost:3000
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+4.  **Run Development Server**
+    ```bash
+    npm run dev
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+5.  **Access the App**
+    - Landing: `http://localhost:3000`
+    - Admin: `http://localhost:3000/admin/dashboard`
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧩 Future Roadmap (For AI Planning)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [ ] **Payment Gateway Integration:** Verification of Razorpay/Stripe webhooks.
+- [ ] **Advanced Analytics:** Chart.js integration for profit trendlines.
+- [ ] **KYC Module:** Document upload and admin verification flow.
+- [ ] **Email Service:** Switch from Nodemailer to Resend/SendGrid for reliability.
+- [ ] **Mobile App:** React Native adaptation using shared components.
+
+---
+
+*Verified & maintained by the InvestHub Engineering Team.*

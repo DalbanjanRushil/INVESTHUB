@@ -4,6 +4,7 @@ import FullSettlementForm from "@/components/forms/FullSettlementForm";
 import WithdrawalTable from "@/components/admin/WithdrawalTable";
 import connectToDatabase from "@/lib/db";
 import Withdrawal, { WithdrawalStatus } from "@/models/Withdrawal";
+import PerformancePeriod from "@/models/PerformancePeriod";
 import { Layers, ShieldCheck, ArrowRight } from "lucide-react";
 
 async function getPendingWithdrawals() {
@@ -15,8 +16,23 @@ async function getPendingWithdrawals() {
     return JSON.parse(JSON.stringify(list));
 }
 
+async function getDistributablePeriods() {
+    await connectToDatabase();
+    // Fetch periods that are LOCKED but NOT yet distributed (distributionLinked = false)
+    const periods = await PerformancePeriod.find({
+        locked: true,
+        distributionLinked: false
+    })
+        .sort({ createdAt: -1 })
+        .lean();
+    return JSON.parse(JSON.stringify(periods));
+}
+
 export default async function AdminOperationsPage() {
-    const pendingWithdrawals = await getPendingWithdrawals();
+    const [pendingWithdrawals, performancePeriods] = await Promise.all([
+        getPendingWithdrawals(),
+        getDistributablePeriods()
+    ]);
 
     return (
 
@@ -53,7 +69,7 @@ export default async function AdminOperationsPage() {
                             Profit & Settlement Protocol
                         </h3>
                         <div className="space-y-10 relative z-10">
-                            <ProfitDistributionForm />
+                            <ProfitDistributionForm performancePeriods={performancePeriods} />
                             <div className="h-px bg-slate-800 w-full" />
                             <SettlementForm />
                             <div className="h-px bg-slate-800 w-full" />

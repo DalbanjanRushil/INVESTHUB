@@ -40,19 +40,19 @@ export default function PayoutPreference({ initialPreference }: PayoutPreference
     };
 
     return (
-        <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm mt-6">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Wallet className="w-5 h-5 text-purple-600" />
+        <div className="bg-white dark:bg-[#0F172A] p-6 rounded-2xl border border-gray-100 dark:border-white/10 shadow-sm mt-6">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-white dark:text-white">
+                <Wallet className="w-5 h-5 text-emerald-400" />
                 Profit Strategy
             </h3>
 
-            <div className="flex bg-gray-100 dark:bg-zinc-800 p-1 rounded-xl">
+            <div className="flex bg-slate-900 dark:bg-slate-900 p-1 rounded-xl border border-white/10">
                 <button
                     onClick={() => togglePreference("COMPOUND")}
                     disabled={loading}
                     className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${preference === "COMPOUND"
-                        ? "bg-white dark:bg-black shadow-sm text-blue-600"
-                        : "text-gray-500 hover:text-gray-700"
+                        ? "bg-emerald-500/20 text-emerald-400 shadow-sm border border-emerald-500/30"
+                        : "text-slate-400 hover:text-slate-200"
                         }`}
                 >
                     <RefreshCw className={`w-4 h-4 ${preference === "COMPOUND" ? "animate-spin-slow" : ""}`} />
@@ -62,8 +62,8 @@ export default function PayoutPreference({ initialPreference }: PayoutPreference
                     onClick={() => togglePreference("PAYOUT")}
                     disabled={loading}
                     className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${preference === "PAYOUT"
-                        ? "bg-white dark:bg-black shadow-sm text-green-600"
-                        : "text-gray-500 hover:text-gray-700"
+                        ? "bg-emerald-500/20 text-emerald-400 shadow-sm border border-emerald-500/30"
+                        : "text-slate-400 hover:text-slate-200"
                         }`}
                 >
                     <Wallet className="w-4 h-4" />
@@ -71,7 +71,7 @@ export default function PayoutPreference({ initialPreference }: PayoutPreference
                 </button>
             </div>
 
-            <p className="mt-3 text-xs text-gray-500">
+            <p className="mt-3 text-xs text-slate-400">
                 {preference === "COMPOUND"
                     ? "Profits will be automatically added to your principal balance for compound growth."
                     : "Profits will be credited to your Payout Wallet, available for withdrawal anytime."}

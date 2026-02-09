@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InvestHub Technical Reference Manual</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#e0e7ff',
+                primaryTextColor: '#1e1b4b',
+                primaryBorderColor: '#4338ca',
+                lineColor: '#6366f1',
+                secondaryColor: '#f0fdf4',
+                tertiaryColor: '#f1f5f9'
+            }
+        });
+    </script>
+    <style>
+        /* 
+         * DESIGN TOKENS - "Corporate Indigo Theme"
+         * A professional, high-trust financial documentation palette.
+         */
+        :root {
+            /* Colors */
+            --color-bg-body: #f8fafc;
+            --color-bg-sidebar: #0f172a;
+            --color-bg-card: #ffffff;
+            --color-bg-code: #1e293b;
+
+            --color-text-primary: #334155;
+            --color-text-heading: #0f172a;
+            --color-text-sidebar: #94a3b8;
+            --color-text-sidebar-active: #ffffff;
+            --color-text-inverted: #f1f5f9;
+
+            --color-accent-primary: #4f46e5;
+            /* Indigo 600 */
+            --color-accent-secondary: #0ea5e9;
+            /* Sky 500 */
+            --color-border: #e2e8f0;
+            --color-divider: #cbd5e1;
+
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 40px;
+
+            /* Typography */
+            --font-sans: 'Inter', system-ui, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        /* RESET & BASE */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            color: var(--color-text-primary);
+            background-color: var(--color-bg-body);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            color: var(--color-text-heading);
+            font-weight: 700;
+            margin-bottom: 0.75em;
+            letter-spacing: -0.025em;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            margin-bottom: 0.5em;
+            border-bottom: 2px solid var(--color-accent-primary);
+            padding-bottom: 0.3em;
+            display: inline-block;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            margin-top: 2em;
+            padding-bottom: 0.3em;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            margin-top: 1.5em;
+            color: var(--color-accent-primary);
+        }
+
+        p {
+            margin-bottom: 1.25em;
+            max-width: 75ch;
+        }
+
+        a {
+            color: var(--color-accent-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--color-accent-secondary);
+            text-decoration: underline;
+        }
+
+        /* LAYOUT */
+        .sidebar {
+            width: 280px;
+            background-color: var(--color-bg-sidebar);
+            color: var(--color-text-sidebar);
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            border-right: 1px solid var(--color-border);
+            z-index: 10;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: var(--space-xl) 60px;
+            max-width: 1200px;
+        }
+
+        /* SIDEBAR NAV */
+        .brand {
+            padding: var(--space-lg);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--color-text-sidebar-active);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand span {
+            color: var(--color-accent-secondary);
+        }
+
+        .nav-group {
+            padding: var(--space-lg) var(--space-md) var(--space-sm);
+        }
+
+        .nav-header {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-sm);
+            color: var(--color-accent-secondary);
+        }
+
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: var(--color-text-sidebar);
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--color-text-sidebar-active);
+        }
+
+        .nav-link.active {
+            background-color: var(--color-accent-primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        /* DOCUMENTATION COMPONENTS */
+        .doc-section {
+            margin-bottom: 80px;
+            scroll-margin-top: 40px;
+        }
+
+        .info-box {
+            background-color: #eff6ff;
+            border-left: 4px solid var(--color-accent-primary);
+            padding: var(--space-md);
+            border-radius: 4px;
+            margin: var(--space-md) 0;
+            font-size: 0.95rem;
+        }
+
+        .warning-box {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: var(--space-md);
+            border-radius: 4px;
+            margin: var(--space-md) 0;
+            color: #7f1d1d;
+        }
+
+        .diagram-container {
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: var(--space-lg);
+            margin: var(--space-lg) 0;
+            box-shadow: var(--shadow-sm);
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .diagram-container::before {
+            content: "ARCHITECTURAL DIAGRAM";
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: var(--color-bg-sidebar);
+            color: white;
+            font-size: 0.65rem;
+            padding: 4px 10px;
+            border-bottom-right-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: var(--space-md) 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        code {
+            font-family: var(--font-mono);
+            background-color: #f1f5f9;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: var(--color-accent-primary);
+        }
+
+        pre {
+            background-color: var(--color-bg-code);
+            color: var(--color-text-inverted);
+            padding: var(--space-md);
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: var(--space-md) 0;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+            font-size: 0.9em;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="sidebar">
+        <div class="brand">
+            INVEST<span>HUB</span> DOCS
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-header">Overview</div>
+            <a href="#intro" class="nav-link active">Introduction</a>
+            <a href="#architecture" class="nav-link">System Architecture</a>
+            <a href="#techstack" class="nav-link">Technology Stack</a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-header">Core Modules</div>
+            <a href="#auth" class="nav-link">Authentication & Users</a>
+            <a href="#finance" class="nav-link">Financial Engine</a>
+            <a href="#admin" class="nav-link">Admin Administration</a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-header">Data & API</div>
+            <a href="#database" class="nav-link">Database Schema</a>
+            <a href="#api" class="nav-link">API Specification</a>
+            <a href="#states" class="nav-link">State Machines</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+
+        <!-- SECTION 1: INTRODUCTION -->
+        <section id="intro" class="doc-section">
+            <h1>InvestHub Platform Documentation</h1>
+            <p class="lead">Comprehensive technical reference manual for the InvestHub Investment Simulation Platform,
+                Version 2.0.</p>
+
+            <div class="info-box">
+                <strong>Confidentiality Notice:</strong> This documentation details the internal logic, security
+                protocols, and architectural decisions of the InvestHub system. Intended for development and
+                administrative teams only.
+            </div>
+
+            <h2>1. Executive Summary</h2>
+            <p>
+                InvestHub is a sophisticated simulated investment platform designed to provide a realistic closed-loop
+                financial ecosystem. Users can deposit funds via integrated payment gateways (Razorpay), manage
+                portfolios, and accrue compounded profits based on system-generated simulations.
+            </p>
+            <p>
+                The system emphasizes <strong>integrity</strong>, <strong>atomicity</strong> in financial transactions,
+                and <strong>real-time responsiveness</strong> via socket-based event propagation. It is built to
+                simulate high-frequency interaction while maintaining a rigid audit trail for all monetary movements.
+            </p>
+        </section>
+
+        <!-- SECTION 2: ARCHITECTURE -->
+        <section id="architecture" class="doc-section">
+            <h2>2. System Architecture</h2>
+            <p>The platform follows a monolithic architecture with modularized service layers, ensuring tight coupling
+                of financial transactions while maintaining separation of concerns for external integrations.</p>
+
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph TD
+                    subgraph Client ["Client Layer"]
+                    Browser[Web Browser]
+                    end
+
+                    subgraph App ["Application Layer (Next.js)"]
+                    Auth[NextAuth Middleware]
+                    API_Internal[Internal API Routes]
+                    API_Public[Public Handlers]
+                    Socket[Socket Server]
+                    end
+
+                    subgraph Services ["Service Layer"]
+                    FinService[Finance Service]
+                    UserService[User Service]
+                    NotifService[Notification Service]
+                    end
+
+                    subgraph Data ["Persistence Layer"]
+                    Atlas[(MongoDB Atlas)]
+                    end
+
+                    subgraph External ["Integration Layer"]
+                    Razorpay[Razorpay PG]
+                    SMTP[SMTP Relay]
+                    end
+
+                    Browser -->|HTTPS/WSS| App
+                    API_Internal --> FinService
+                    API_Internal --> UserService
+                    FinService -->|Atomic Writes| Atlas
+                    FinService -->|Webhooks| Razorpay
+                    NotifService -->|Async| SMTP
+                    Socket -->|Events| Browser
+                </div>
+            </div>
+
+            <h3>2.1 Core Pillars</h3>
+            <ul>
+                <li><strong>Security:</strong> All routes protected via JWT session tokens; Admin routes enforced via
+                    RBAC (Role-Based Access Control).</li>
+                <li><strong>Reliability:</strong> MongoDB ACID transactions used for all wallet creation and fund
+                    transfers.</li>
+                <li><strong>Scalability:</strong> Stateless API design allowing horizontal scaling (excepting the Socket
+                    instance which requires Redis adapter for clustering).</li>
+            </ul>
+        </section>
+
+        <!-- SECTION 3: TECH STACK -->
+        <section id="techstack" class="doc-section">
+            <h2>3. Technology Stack</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Layer</th>
+                        <th>Technology</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Frontend</td>
+                        <td>React 18, TailwindCSS</td>
+                        <td>Component-based UI, responsive styling.</td>
+                    </tr>
+                    <tr>
+                        <td>Backend / Runtime</td>
+                        <td>Next.js 14, Node.js</td>
+                        <td>Server-side rendering, API routes.</td>
+                    </tr>
+                    <tr>
+                        <td>Database</td>
+                        <td>MongoDB, Mongoose ODM</td>
+                        <td>Document storage, schema validation.</td>
+                    </tr>
+                    <tr>
+                        <td>Real-time</td>
+                        <td>Socket.io</td>
+                        <td>Live dashboard updates, notifications.</td>
+                    </tr>
+                    <tr>
+                        <td>Payments</td>
+                        <td>Razorpay SDK</td>
+                        <td>Payment processing and webhook verification.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- SECTION 4: AUTHENTICATION -->
+        <section id="auth" class="doc-section">
+            <h2>4. Authentication & User Management</h2>
+            <p>The system distinguishes strictly between <code>USER</code> and <code>ADMIN</code> roles. Identification
+                is handled via email/password combination with bcrypt hashing.</p>
+
+            <h3>4.1 User Lifecycle</h3>
+            <div class="mermaid">
+                stateDiagram-v2
+                [*] --> Visitor
+                Visitor --> Registered: Sign Up
+                Registered --> Active: KYC Approved
+                Active --> Locked: Suspicious Activity
+                Locked --> Active: Admin Unlocks
+                Active --> [*]
+            </div>
+
+            <div class="warning-box">
+                <strong>Security Critical:</strong> Password hashes are never exposed to the client. Session validation
+                occurs on every protected API call using <code>getServerSession</code>.
+            </div>
+        </section>
+
+        <!-- SECTION 5: FINANCIAL ENGINE -->
+        <section id="finance" class="doc-section">
+            <h2>5. Financial Engine Logic</h2>
+            <p>The core of InvestHub is the handling of user funds. This section details the rigorous logic applied to
+                deposits and withdrawals.</p>
+
+            <h3>5.1 Deposit Workflow (Razorpay Integration)</h3>
+            <ol>
+                <li><strong>Initiation:</strong> User requests deposit -> System calls Razorpay Order API -> Returns
+                    <code>order_id</code>.</li>
+                <li><strong>Execution:</strong> User completes payment on client side.</li>
+                <li><strong>Verification:</strong> Razorpay webhook/callback hits backend -> Signature verified (HMAC
+                    SHA256).</li>
+                <li><strong>Completion:</strong> Wallet balance credited transaction log created.</li>
+            </ol>
+
+            <h3>5.2 Withdrawal & Locking Mechanism</h3>
+            <p>To prevent double-spending, funds requested for withdrawal are immediately moved from
+                <code>Available Balance</code> to <code>Locked Balance</code>.</p>
+
+            <pre><code>
+// Conceptual Logic for Withdrawal Request
+async function requestWithdrawal(userId, amount) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    
+    try {
+        const wallet = await Wallet.findOne({ userId }).session(session);
+        if (wallet.balance < amount) throw new Error("Insufficient Funds");
+
+        // ATOMIC OPERATION
+        wallet.balance -= amount;
+        wallet.lockedFunds += amount;
+        
+        await wallet.save();
+        await WithdrawalRequest.create([{ userId, amount, status: 'PENDING' }], { session });
+        
+        await session.commitTransaction();
+    } catch (error) {
+        await session.abortTransaction();
+        throw error;
+    }
+}
+            </code></pre>
+        </section>
+
+        <!-- SECTION 6: STATE MACHINES -->
+        <section id="states" class="doc-section">
+            <h2>6. Transaction State Machines</h2>
+
+            <h3>6.1 Withdrawal Request Lifecycle</h3>
+            <div class="mermaid">
+                stateDiagram-v2
+                state "User Request" as Req
+                state "Pending Review" as P
+                state "Processed/Settle" as S
+                state "Rejected/Refund" as R
+
+                [*] --> Req
+                Req --> P: Funds Locked
+
+                state Admin_Action {
+                P --> S: Approve
+                P --> R: Reject
+                }
+
+                S --> [*]: Funds Transferred
+                R --> [*]: Funds Unlocked -> Wallet
+            </div>
+
+            <p>
+                <strong>Approval:</strong> Admin marks as "Approved". System logs 'WITHDRAWAL_SUCCESS'. Locked funds are
+                permanently removed.<br>
+                <strong>Rejection:</strong> Admin marks as "Rejected". Locked funds are returned to 'Available Balance'.
+                System logs 'WITHDRAWAL_REFUND'.
+            </p>
+        </section>
+
+        <!-- SECTION 7: DATABASE SCHEMA -->
+        <section id="database" class="doc-section">
+            <h2>7. Database Schema Reference</h2>
+
+            <h3>7.1 Entity Relationship Diagram</h3>
+            <div class="mermaid">
+                erDiagram
+                USER ||--|| WALLET : owns
+                USER {
+                ObjectId _id PK
+                string email UK
+                string password_hash
+                enum role "USER|ADMIN"
+                boolean is_kyc_verified
+                }
+                WALLET {
+                ObjectId _id PK
+                ObjectId user_id FK
+                decimal balance
+                decimal locked_funds
+                decimal total_profit
+                }
+                USER ||--o{ TRANSACTION : generates
+                TRANSACTION {
+                ObjectId _id PK
+                ObjectId user_id FK
+                enum type "DEPOSIT|WITHDRAWAL"
+                decimal amount
+                string status
+                date created_at
+                }
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Simple Navigation Highlighting Logic
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('.doc-section');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -4,9 +4,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import connectToDatabase from "@/lib/db";
 import Deposit, { DepositStatus } from "@/models/Deposit";
-import Wallet from "@/models/Wallet";
-import Transaction, { TransactionType } from "@/models/Transaction";
-import Investment from "@/models/Investment";
+import { LedgerService, SYSTEM_ACCOUNTS } from "@/lib/services/LedgerService";
+import { LedgerAccountType, LedgerDirection, LedgerReferenceType } from "@/models/LedgerEntry";
+import { TransactionType, RiskFlag } from "@/models/Transaction";
+import Investment, { LockPlan } from "@/models/Investment";
+import InvestmentLedger, { InvestmentAction } from "@/models/InvestmentLedger";
 import User from "@/models/User";
 import ErrorLog from "@/models/ErrorLog";
 import crypto from "crypto";
@@ -15,33 +17,21 @@ import mongoose from "mongoose";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-    console.log("[Verify] Starting Verification Process...");
+    console.log("[Verify] Starting Verification Process with Ledger...");
     try {
         const session = await getServerSession(authOptions);
         if (!session) {
-            console.error("[Verify] No session found");
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-        console.log(`[Verify] Session User ID: ${session.user.id}`);
 
-        let body;
-        try {
-            body = await req.json();
-        } catch (e) {
-            console.error("[Verify] Failed to parse JSON body", e);
-            return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-        }
-
+        const body = await req.json();
         const {
             razorpay_order_id,
             razorpay_payment_id,
             razorpay_signature,
         } = body;
 
-        console.log(`[Verify] OrderID: ${razorpay_order_id}, PaymentID: ${razorpay_payment_id}`);
-
         if (!process.env.RAZORPAY_KEY_SECRET) {
-            console.error("[Verify] RAZORPAY_KEY_SECRET is missing");
             throw new Error("Razorpay Secret not defined");
         }
 
@@ -52,163 +42,155 @@ export async function POST(req: Request) {
             .update(signatureBody.toString())
             .digest("hex");
 
-        const isAuthentic = expectedSignature === razorpay_signature;
-        console.log(`[Verify] Signature Authentic: ${isAuthentic}`);
+        if (expectedSignature !== razorpay_signature) {
+            return NextResponse.json({ error: "Invalid Signature", success: false }, { status: 400 });
+        }
 
-        console.log("[Verify] Connecting to DB...");
         await connectToDatabase();
-        console.log("[Verify] Connected to DB.");
 
         const deposit = await Deposit.findOne({ razorpayOrderId: razorpay_order_id });
-        console.log(`[Verify] Deposit Found: ${deposit ? deposit._id : 'NO'}`);
-
         if (!deposit) {
             return NextResponse.json({ error: "Deposit record not found" }, { status: 404 });
         }
 
         if (deposit.status === DepositStatus.SUCCESS) {
-            console.log("[Verify] Deposit already processed.");
             return NextResponse.json({ message: "Already processed" }, { status: 200 });
         }
 
-        if (isAuthentic) {
-            // Ensure userId is handled correctly
-            const targetUserId = deposit.userId; // Already an ObjectId from Schema
-            console.log(`[Verify] Processing for TargetUser: ${targetUserId}`);
+        // 2. Atomic Status Update (Idempotency)
+        const uniqueDeposit = await Deposit.findOneAndUpdate(
+            { _id: deposit._id, status: "PENDING" },
+            {
+                $set: {
+                    status: DepositStatus.SUCCESS,
+                    razorpayPaymentId: razorpay_payment_id,
+                    razorpaySignature: razorpay_signature
+                }
+            },
+            { new: true }
+        );
 
-            // A. Update Deposit Status
-            deposit.status = DepositStatus.SUCCESS;
-            deposit.razorpayPaymentId = razorpay_payment_id;
-            deposit.razorpaySignature = razorpay_signature;
-            await deposit.save();
-            console.log("[Verify] Deposit status updated to SUCCESS");
+        if (!uniqueDeposit) {
+            return NextResponse.json({ message: "Already processed" }, { status: 200 });
+        }
 
-            // B. Create Active Investment Record
-            const plan = deposit.plan || "FLEXI";
-            let maturityDate = undefined;
-            const now = new Date();
+        // 3. START LEDGER TRANSACTION
+        const targetUserId = deposit.userId.toString();
+        const plan = uniqueDeposit.plan || "FLEXI";
+        const isFlexi = plan === "FLEXI";
+        const amount = uniqueDeposit.amount;
 
-            if (plan === "FIXED_3M") maturityDate = new Date(now.setMonth(now.getMonth() + 3));
-            else if (plan === "FIXED_6M") maturityDate = new Date(now.setMonth(now.getMonth() + 6));
-            else if (plan === "FIXED_1Y") maturityDate = new Date(now.setMonth(now.getMonth() + 12));
+        // Determine Wallet Destination
+        // Flexi -> Principal, Locked -> Locked
+        const targetAccount = isFlexi ? LedgerAccountType.PRINCIPAL : LedgerAccountType.LOCKED;
 
-            console.log(`[Verify] Creating Investment Record... Plan: ${plan}`);
-            await Investment.create({
-                userId: targetUserId,
-                amount: deposit.amount,
-                plan: plan,
-                startDate: new Date(),
-                maturityDate: maturityDate,
-                sourceDepositId: deposit._id,
-                isActive: true
-            });
-            console.log("[Verify] Investment Created.");
-
-            // C. Update Wallet
-            console.log("[Verify] Updating Wallet...");
-            const incQuery: any = { totalDeposited: deposit.amount };
-
-            if (plan === "FLEXI") {
-                incQuery.principal = deposit.amount;
-            } else {
-                incQuery.locked = deposit.amount;
-            }
-
-            const updatedWallet = await Wallet.findOneAndUpdate(
-                { userId: targetUserId },
+        // A. Record Financial Transaction (Double Entry)
+        const transaction = await LedgerService.recordTransaction({
+            userId: targetUserId,
+            type: TransactionType.DEPOSIT,
+            amount: amount,
+            netAmount: amount, // Fees?
+            referenceType: LedgerReferenceType.DEPOSIT,
+            gatewayOrderId: razorpay_order_id,
+            description: `Deposit via Razorpay (${plan})`,
+            metadata: {
+                plan,
+                razorpay_payment_id
+            },
+            movements: [
                 {
-                    $inc: incQuery
+                    accountType: targetAccount,
+                    direction: LedgerDirection.CREDIT,
+                    amount: amount,
+                    userId: targetUserId
                 },
-                { new: true, upsert: true }
-            );
-            console.log(`[Verify] Wallet Updated. New Principal: ${updatedWallet?.principal}`);
-
-            // D. Log Transaction
-            console.log(`[Verify] Creating Transaction Log...`);
-            const transactionRecord = await Transaction.create({
-                userId: targetUserId,
-                type: TransactionType.DEPOSIT,
-                amount: deposit.amount,
-                referenceId: deposit._id,
-                status: "SUCCESS",
-                description: `Deposit via Razorpay (${plan === "FLEXI" ? "Flexi" : "Locked " + plan})`,
-            });
-            console.log(`[Verify] Transaction Created: ${transactionRecord._id}`);
-
-            // E. Real-time Update
-            console.log("[Verify] Emitting Socket Event...");
-            const socketInternalUrl = "http://localhost:3000/api/socket/emit";
-            try {
-                const socketRes = await fetch(socketInternalUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        event: `user:${session.user.id}:update`,
-                        data: { type: "DEPOSIT_SUCCESS", amount: deposit.amount }
-                    })
-                });
-                if (!socketRes.ok) {
-                    console.error("[Verify] Socket Emit Status:", socketRes.status);
-                } else {
-                    console.log("[Verify] Socket Emitted Successfully.");
+                {
+                    accountType: LedgerAccountType.GATEWAY, // Liability Source
+                    direction: LedgerDirection.DEBIT,
+                    amount: amount,
+                    userId: null // System
                 }
-            } catch (e) {
-                console.error("[Verify] Socket Internal Error (Non-Fatal):", e);
-            }
+            ]
+        });
 
-            // --- REFERRAL BONUS ---
-            console.log("[Verify] Checking Referrals...");
-            try {
-                const user = await User.findById(targetUserId);
-                if (user && user.referredBy) {
-                    const referrerId = new mongoose.Types.ObjectId(user.referredBy as any);
-                    console.log(`[Verify] Referrer Found: ${referrerId}`);
-                    const REFERRAL_RATE = 0.01;
-                    const bonusAmount = Number((deposit.amount * REFERRAL_RATE).toFixed(2));
+        // B. Create Investment Contract
+        let maturityDate = undefined;
+        const now = new Date();
+        if (plan === "FIXED_3M") maturityDate = new Date(now.setMonth(now.getMonth() + 3));
+        else if (plan === "FIXED_6M") maturityDate = new Date(now.setMonth(now.getMonth() + 6));
+        else if (plan === "FIXED_1Y") maturityDate = new Date(now.setMonth(now.getMonth() + 12));
 
-                    if (bonusAmount > 0) {
-                        await Wallet.findOneAndUpdate(
-                            { userId: referrerId },
-                            {
-                                $inc: { referral: bonusAmount, totalProfit: bonusAmount },
-                                $setOnInsert: { principal: 0, profit: 0, locked: 0, balance: 0 }
-                            },
-                            { upsert: true }
-                        );
-                        await Transaction.create({
-                            userId: referrerId,
-                            type: TransactionType.REFERRAL_BONUS,
-                            amount: bonusAmount,
-                            status: "SUCCESS",
-                            description: `Referral Bonus (1%) from ${user.name}'s deposit`,
-                        });
-                        console.log(`[Verify] Referral Bonus of ${bonusAmount} credited to ${referrerId}`);
-                    }
-                }
-            } catch (err) { console.error("[Verify] Bonus Error:", err); }
+        const investment = await Investment.create({
+            userId: targetUserId,
+            amount: amount,
+            plan: plan,
+            startDate: new Date(),
+            maturityDate: maturityDate,
+            sourceDepositId: uniqueDeposit._id,
+            isActive: true
+        });
 
-            return NextResponse.json({ message: "Verify Success", success: true }, { status: 200 });
-        } else {
-            deposit.status = DepositStatus.FAILED;
-            await deposit.save();
-            console.error("[Verify] Invalid Signature");
-            return NextResponse.json({ error: "Invalid Signature", success: false }, { status: 400 });
-        }
-    } catch (error: any) {
-        console.error("Verification Critical Error Stack:", error.stack);
+        // C. Investment Ledger (Immutable Tracking)
+        await InvestmentLedger.create({
+            investmentId: investment._id,
+            userId: targetUserId,
+            action: InvestmentAction.CREATION,
+            amountChange: amount,
+            balanceAfter: amount,
+            description: "Initial Deposit Investment",
+            transactionId: transaction._id
+        });
 
-        // Persist Internal Error to DB
+        // D. Referral Bonus (Pending Admin Approval)
         try {
-            await connectToDatabase();
-            await ErrorLog.create({
-                path: "/api/finance/deposit/verify",
-                error: error.message,
-                stack: error.stack
-            });
-        } catch (loggingErr) {
-            console.error("Failed to log error to DB:", loggingErr);
+            const user = await User.findById(targetUserId);
+            if (user && user.referredBy) {
+                const REFERRAL_RATE = 0.01;
+                const bonusAmount = Number((amount * REFERRAL_RATE).toFixed(2));
+
+                if (bonusAmount > 0) {
+                    // CREATE PENDING TRANSACTION ONLY
+                    // Logic: "Admin must approve from his fund"
+                    await Transaction.create({
+                        userId: user.referredBy,
+                        type: TransactionType.REFERRAL_BONUS,
+                        status: TransactionStatus.PENDING, // ACTION REQUIRED
+                        amount: bonusAmount,
+                        fee: 0,
+                        netAmount: bonusAmount,
+                        description: `Referral Bonus for inviting ${user.name} (Pending Approval)`,
+                        riskFlag: "LOW",
+                        referenceId: uniqueDeposit._id // Link to deposit
+                    });
+                    console.log(`[Verify] Pending Referral Bonus created for ${user.referredBy}`);
+                }
+            }
+        } catch (err) {
+            console.error("[Verify] Bonus Error:", err);
         }
 
+        // E. Real-time Update
+        const socketInternalUrl = "http://localhost:3000/api/socket/emit";
+        try {
+            fetch(socketInternalUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    event: `user:${session.user.id}:update`,
+                    data: { type: "DEPOSIT_SUCCESS", amount: amount }
+                })
+            }).catch(e => console.error(e));
+        } catch (e) { }
+
+        return NextResponse.json({ message: "Verify Success", success: true }, { status: 200 });
+
+    } catch (error: any) {
+        console.error("Verification Critical Error:", error);
+        await ErrorLog.create({
+            path: "/api/finance/deposit/verify",
+            error: error.message,
+            stack: error.stack
+        });
         return NextResponse.json({ error: "Internal Error", details: error.message, success: false }, { status: 200 });
     }
 }

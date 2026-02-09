@@ -42,36 +42,18 @@ async function getData() {
     }
     console.log(`3. Total Investments in DB: ${allInvestments.length}`);
 
-    // 2. SELF-HEALING: If ledger says X but wallet says Y, fix it now.
-    if (wallet) {
-        let needsUpdate = false;
+    console.log(`3. Total Investments in DB: ${allInvestments.length}`);
 
-        // Sum from Ledger
-        const ledgerPrincipal = allInvestments.filter(i => i.plan === 'FLEXI' && i.isActive).reduce((s, i) => s + i.amount, 0);
-        const ledgerLocked = allInvestments.filter(i => i.plan !== 'FLEXI' && i.isActive).reduce((s, i) => s + i.amount, 0);
-
-        if (wallet.principal < ledgerPrincipal) {
-            console.log(`[FIX] Principal desync: ${wallet.principal} -> ${ledgerPrincipal}`);
-            wallet.principal = ledgerPrincipal;
-            needsUpdate = true;
-        }
-        if (wallet.locked < ledgerLocked) {
-            console.log(`[FIX] Locked desync: ${wallet.locked} -> ${ledgerLocked}`);
-            wallet.locked = ledgerLocked;
-            needsUpdate = true;
-        }
-
-        if (needsUpdate) {
-            await wallet.save();
-            console.log(`[FIX] Wallet successfully synchronized with Investment Ledger.`);
-        }
-    }
+    // LEGACY SELF-HEALING REMOVED
+    // The Wallet model is now a derived view of the Ledger. 
+    // Any discrepancies should be fixed via /api/finance/debug-sync, not on page load.
 
     return {
         wallet: wallet ? JSON.parse(JSON.stringify(wallet.toObject())) : null,
         transactions: JSON.parse(JSON.stringify(transactions)),
         user: user ? JSON.parse(JSON.stringify(user.toObject())) : null,
-        totalReferrals
+        totalReferrals,
+        investments: JSON.parse(JSON.stringify(allInvestments))
     };
 }
 

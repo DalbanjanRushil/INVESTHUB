@@ -121,11 +121,11 @@ export default function FeedCard({ item }: { item: FeedItem }) {
 
     return (
         <div className={cn(
-            "bg-card dark:bg-[#1F2937] border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full",
+            "bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full",
             isDeleting && "opacity-50 pointer-events-none grayscale"
         )}>
             {/* Media Area */}
-            <div className="relative aspect-video bg-black/5 dark:bg-black/40 group overflow-hidden">
+            <div className="relative aspect-video bg-muted group overflow-hidden">
                 {isVideo && isPlaying && videoId ? (
                     <iframe
                         width="100%"
@@ -174,7 +174,7 @@ export default function FeedCard({ item }: { item: FeedItem }) {
                         {session?.user?.role === "ADMIN" && (
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleDelete(); }}
-                                className="absolute top-3 right-3 p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-lg backdrop-blur-md transition-all shadow-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+                                className="absolute top-3 right-3 p-2 bg-destructive/80 hover:bg-destructive text-white rounded-lg backdrop-blur-md transition-all shadow-lg opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
                                 title="Delete Content"
                             >
                                 {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
@@ -190,7 +190,7 @@ export default function FeedCard({ item }: { item: FeedItem }) {
                     <h3 className="font-bold text-foreground text-lg leading-tight mb-2 line-clamp-2" title={item.title}>
                         {item.title}
                     </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 md:line-clamp-3 mb-4">
+                    <p className="text-sm text-muted-foreground line-clamp-2 md:line-clamp-3 mb-4">
                         {item.description || "No description provided."}
                     </p>
                 </div>
@@ -201,8 +201,8 @@ export default function FeedCard({ item }: { item: FeedItem }) {
                         <button
                             onClick={handleLike}
                             className={cn(
-                                "flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-red-500",
-                                isLiked ? "text-red-500" : "text-muted-foreground"
+                                "flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-destructive",
+                                isLiked ? "text-destructive" : "text-muted-foreground"
                             )}
                         >
                             <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
@@ -211,7 +211,7 @@ export default function FeedCard({ item }: { item: FeedItem }) {
 
                         <button
                             onClick={() => setShowComments(!showComments)}
-                            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-blue-500 transition-colors"
+                            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                         >
                             <MessageCircle className="w-4 h-4" />
                             {comments.length}
@@ -231,22 +231,22 @@ export default function FeedCard({ item }: { item: FeedItem }) {
                             {comments.length > 0 ? (
                                 comments.map((c, i) => (
                                     <div key={i} className="flex gap-2 text-sm group">
-                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex-shrink-0 flex items-center justify-center text-[10px] font-bold">
+                                        <div className="w-6 h-6 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-secondary-foreground">
                                             {typeof c.user === 'object' ? c.user?.name?.[0] : "?"}
                                         </div>
-                                        <div className="flex-1 bg-slate-100 dark:bg-slate-800 p-2 rounded-r-lg rounded-bl-lg">
+                                        <div className="flex-1 bg-muted p-2 rounded-r-lg rounded-bl-lg">
                                             <div className="flex justify-between items-center mb-0.5">
-                                                <span className="font-bold text-xs">
+                                                <span className="font-bold text-xs text-foreground">
                                                     {typeof c.user === 'object' ? c.user?.name : "User"}
                                                 </span>
                                                 <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</span>
                                             </div>
-                                            <p className="text-xs text-slate-900 dark:text-slate-100 leading-snug">{c.text}</p>
+                                            <p className="text-xs text-foreground leading-snug">{c.text}</p>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <p className="text-xs text-slate-500 dark:text-slate-400 text-center py-2">No comments yet. Be the first!</p>
+                                <p className="text-xs text-muted-foreground text-center py-2">No comments yet. Be the first!</p>
                             )}
                         </div>
 
@@ -257,7 +257,7 @@ export default function FeedCard({ item }: { item: FeedItem }) {
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
                                 placeholder="Add a comment..."
-                                className="w-full pl-3 pr-10 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:ring-2 focus:ring-primary outline-none transition-colors"
+                                className="w-full pl-3 pr-10 py-2 bg-muted border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary outline-none transition-colors"
                             />
                             <button
                                 type="submit"

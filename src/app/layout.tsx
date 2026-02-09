@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers/Providers";
+import SessionGuard from "@/components/auth/SessionGuard";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
 
@@ -26,8 +27,9 @@ export default function RootLayout({
         "antialiased min-h-screen bg-background text-foreground font-sans"
       )}>
         <Providers>
+          <SessionGuard />
           {children}
-          <Toaster richColors position="top-center" theme="dark" closeButton />
+          <Toaster position="top-right" theme="dark" />
         </Providers>
       </body>
     </html>

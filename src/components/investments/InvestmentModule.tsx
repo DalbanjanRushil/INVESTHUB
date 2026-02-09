@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import AllocationChart from "./AllocationChart";
 import PerformanceGraph from "./PerformanceGraph";
-import LockInTimeline from "./LockInTimeline";
+
 import { motion } from "framer-motion";
 import { ShieldCheck, TrendingUp, AlertTriangle, Layers, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,7 @@ interface StrategyData {
     lockInPeriod: number;
     allocation: any[];
     history: any[];
-    estimatedReturn: string;
+    conservativeROI: number;
 }
 
 export default function InvestmentModule() {
@@ -27,9 +27,11 @@ export default function InvestmentModule() {
         async function fetchStrategy() {
             try {
                 const res = await fetch("/api/strategy");
-                const data = await res.json();
-                if (data.strategy) {
-                    setStrategy(data.strategy);
+                const json = await res.json();
+
+                // Use the first active strategy as the primary showcase
+                if (json.success && json.data.strategies?.length > 0) {
+                    setStrategy(json.data.strategies[0]);
                 }
             } catch (error) {
                 console.error("Failed to load strategy", error);
@@ -59,7 +61,7 @@ export default function InvestmentModule() {
                 <div className="flex gap-3 pl-12 md:pl-0">
                     <div className="flex items-center gap-2 px-4 py-2 bg-[#0F172A] rounded-xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
                         <TrendingUp className="w-4 h-4 text-emerald-400" />
-                        <span className="text-sm font-bold text-emerald-400">{strategy.estimatedReturn} APY</span>
+                        <span className="text-sm font-bold text-emerald-400">{strategy.conservativeROI}% Conservative APY</span>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2 bg-[#0F172A] rounded-xl border border-blue-500/20 shadow-lg shadow-blue-500/5">
                         <ShieldCheck className="w-4 h-4 text-blue-400" />
@@ -117,27 +119,7 @@ export default function InvestmentModule() {
                 </motion.div>
             </div>
 
-            {/* 3. Lock-In Timeline */}
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-[#1E293B] rounded-3xl border border-slate-700 p-8 shadow-xl"
-            >
-                <div className="flex items-center justify-between mb-8">
-                    <h3 className="font-bold text-white flex items-center gap-3">
-                        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-                        Maturity Timeline
-                    </h3>
-                    <div className="flex items-center gap-2 text-xs text-amber-500 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">
-                        <AlertTriangle className="w-3.5 h-3.5" />
-                        Early withdrawal penalty: 15%
-                    </div>
-                </div>
-                <div className="px-2">
-                    <LockInTimeline months={strategy.lockInPeriod} />
-                </div>
-            </motion.div>
+            {/* 3. Lock-In Timeline Removed as per user request */}
         </section>
     );
 }

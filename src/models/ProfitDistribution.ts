@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IProfitDistribution extends Document {
+    performancePeriodId?: mongoose.Types.ObjectId; // Optional for legacy records, required for new ones
     totalProfit: number;
     adminShare: number;
     userShare: number;
@@ -12,6 +13,11 @@ export interface IProfitDistribution extends Document {
 
 const ProfitDistributionSchema = new Schema<IProfitDistribution>(
     {
+        performancePeriodId: {
+            type: Schema.Types.ObjectId,
+            ref: "PerformancePeriod",
+            required: false, // For migration safety, but logic will enforce it
+        },
         totalProfit: {
             type: Number,
             required: true,

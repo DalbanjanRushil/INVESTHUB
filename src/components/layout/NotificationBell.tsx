@@ -67,32 +67,32 @@ export default function NotificationBell() {
         <div className="relative" ref={ref}>
             <button
                 onClick={handleOpen}
-                className="p-2 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition relative"
+                className="p-2 text-muted-foreground hover:text-foreground transition relative"
             >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-black" />
+                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-background" />
                 )}
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-[100]">
-                    <div className="p-3 border-b border-gray-100 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-800/50">
-                        <h4 className="text-sm font-bold">Notifications</h4>
+                <div className="absolute right-0 mt-2 w-80 bg-popover border border-border rounded-xl shadow-2xl overflow-hidden z-[100]">
+                    <div className="p-3 border-b border-border bg-muted/50">
+                        <h4 className="text-sm font-bold text-foreground">Notifications</h4>
                     </div>
                     <div className="max-h-[400px] overflow-y-auto">
                         {notifications.length === 0 ? (
-                            <div className="p-8 text-center text-gray-400 text-xs">
+                            <div className="p-8 text-center text-muted-foreground text-xs">
                                 No new notifications
                             </div>
                         ) : (
                             notifications.map((n) => (
-                                <div key={n._id} className={`p-4 border-b border-gray-100 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition ${!n.isRead ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
-                                    <h5 className="text-sm font-semibold text-gray-900 dark:text-white flex justify-between">
+                                <div key={n._id} className={`p-4 border-b border-border hover:bg-muted/50 transition ${!n.isRead ? 'bg-primary/5' : ''}`}>
+                                    <h5 className="text-sm font-semibold text-foreground flex justify-between">
                                         {n.title}
-                                        <span className="text-[10px] text-gray-400 font-normal">{new Date(n.createdAt).toLocaleDateString()}</span>
+                                        <span className="text-[10px] text-muted-foreground font-normal">{new Date(n.createdAt).toLocaleDateString()}</span>
                                     </h5>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
+                                    <p className="text-xs text-secondary-foreground mt-1 leading-relaxed">
                                         {n.message}
                                     </p>
                                 </div>

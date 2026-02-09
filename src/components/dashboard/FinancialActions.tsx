@@ -223,16 +223,16 @@ export default function FinancialActions({ preference: initialPref }: FinancialA
 
             {/* --- Unified Modal Overlay --- */}
             {activeModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="w-full max-w-md bg-white dark:bg-[#1F2937] rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 p-6 relative animate-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-md bg-card rounded-2xl shadow-2xl border border-border p-6 relative animate-in zoom-in-95 duration-200">
                         <button
                             onClick={() => { setActiveModal(null); setAmount(""); }}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                            className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
                         >
                             <X className="w-6 h-6" />
                         </button>
 
-                        <h3 className="text-xl font-bold mb-1">
+                        <h3 className="text-xl font-bold mb-1 text-foreground">
                             {activeModal === "DEPOSIT" ? "Add Funds" : "Request Withdrawal"}
                         </h3>
                         <p className="text-sm text-muted-foreground mb-6">
@@ -244,7 +244,7 @@ export default function FinancialActions({ preference: initialPref }: FinancialA
                         <div className="space-y-4">
                             {activeModal === "DEPOSIT" && (
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-gray-500 block">Investment Plan</label>
+                                    <label className="text-xs font-bold uppercase text-muted-foreground block">Investment Plan</label>
                                     <div className="grid grid-cols-2 gap-2">
                                         {[
                                             { id: 'FLEXI', label: 'Flexi (No Lock)', desc: 'Standard Return' },
@@ -258,12 +258,12 @@ export default function FinancialActions({ preference: initialPref }: FinancialA
                                                 className={cn(
                                                     "p-3 rounded-lg border text-left transition-all",
                                                     selectedPlan === plan.id
-                                                        ? "bg-blue-500 text-white border-blue-600 shadow-md"
-                                                        : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                                        ? "bg-primary text-primary-foreground border-primary shadow-md"
+                                                        : "bg-muted border-border hover:bg-muted/80 text-foreground"
                                                 )}
                                             >
                                                 <div className="text-sm font-bold">{plan.label}</div>
-                                                <div className={cn("text-[10px]", selectedPlan === plan.id ? "text-blue-100" : "text-gray-500")}>{plan.desc}</div>
+                                                <div className={cn("text-[10px]", selectedPlan === plan.id ? "text-primary-foreground/80" : "text-muted-foreground")}>{plan.desc}</div>
                                             </button>
                                         ))}
                                     </div>
@@ -271,14 +271,14 @@ export default function FinancialActions({ preference: initialPref }: FinancialA
                             )}
 
                             <div>
-                                <label className="text-xs font-bold uppercase text-gray-500 mb-2 block">Enter Amount (INR)</label>
+                                <label className="text-xs font-bold uppercase text-muted-foreground mb-2 block">Enter Amount (INR)</label>
                                 <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₹</span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">₹</span>
                                     <input
                                         type="number"
                                         value={amount}
                                         onChange={(e) => setAmount(e.target.value)}
-                                        className="w-full pl-8 pr-4 py-4 text-xl font-bold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 outline-none"
+                                        className="w-full pl-8 pr-4 py-4 text-xl font-bold bg-muted border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary outline-none"
                                         placeholder="0.00"
                                         autoFocus
                                     />

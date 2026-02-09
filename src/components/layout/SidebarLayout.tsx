@@ -19,7 +19,8 @@ import {
     Briefcase,
     Activity,
     FileText,
-    Layers
+    Layers,
+    Zap
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,12 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
             href: "/dashboard/portfolio",
             icon: PieChart, // or Briefcase
             active: pathname.startsWith("/dashboard/portfolio"),
+        },
+        {
+            label: "Performance", // NEW
+            href: "/dashboard/performance",
+            icon: Zap,
+            active: pathname.startsWith("/dashboard/performance"),
         },
         {
             label: "Transactions",
@@ -82,6 +89,12 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
             active: pathname === "/admin/dashboard",
         },
         {
+            label: "Performance Engine", // NEW
+            href: "/admin/performance",
+            icon: Zap,
+            active: pathname.startsWith("/admin/performance"),
+        },
+        {
             label: "Strategy Manager",
             href: "/admin/investments",
             icon: Activity,
@@ -106,12 +119,12 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
     return (
         <div className="min-h-screen bg-background flex font-sans">
             {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-[#151B25]/80 backdrop-blur-md border-b z-50 flex items-center justify-between px-4">
+            <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-md border-b border-border z-50 flex items-center justify-between px-4">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/20">IH</div>
-                    <span className="font-bold text-lg tracking-tight">InvestHub</span>
+                    <span className="font-bold text-lg tracking-tight text-foreground">InvestHub</span>
                 </div>
-                <button onClick={() => setIsMobileOpen(!isMobileOpen)}>
+                <button onClick={() => setIsMobileOpen(!isMobileOpen)} className="text-foreground">
                     {isMobileOpen ? <X /> : <Menu />}
                 </button>
             </div>
@@ -126,11 +139,11 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                 )}>
                 {/* Logo Area */}
                 <div className="h-20 flex items-center px-6 border-b border-border/50">
-                    <div className="w-10 h-10 min-w-[40px] rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/20 mr-3 group-hover:scale-110 transition-transform">
+                    <div className="w-10 h-10 min-w-[40px] rounded-xl bg-gradient-to-tr from-accent-primary to-accent-secondary flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-accent-primary/20 mr-3 group-hover:scale-110 transition-transform">
                         IH
                     </div>
                     <div className={cn("transition-opacity duration-300", isCollapsed ? "opacity-0 hidden" : "opacity-100 block")}>
-                        <h1 className="font-bold text-lg leading-tight tracking-tight">InvestHub</h1>
+                        <h1 className="font-bold text-lg leading-tight tracking-tight text-foreground">InvestHub</h1>
                         <p className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">
                             {session.user.role === 'ADMIN' ? 'Admin Console' : 'Wealth Portal'}
                         </p>
@@ -145,11 +158,11 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                     )}>
                         {/* Avatar */}
                         <div className="relative">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-300 dark:from-gray-700 dark:to-gray-900 flex items-center justify-center text-foreground font-bold border-2 border-white dark:border-gray-800 shadow-sm">
+                            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground font-bold border-2 border-background shadow-sm">
                                 {session.user.name?.[0]}
                             </div>
                             {/* KYC Status Ring */}
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white dark:border-gray-900" title="Verified Investor"></div>
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-accent-primary border-2 border-background" title="Verified Investor"></div>
                         </div>
 
                         {/* Text (Hidden on collapse) */}
@@ -158,7 +171,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                             <div className="flex items-center gap-1">
                                 <span className={cn(
                                     "text-[10px] font-bold px-1.5 py-0.5 rounded text-white shadow-sm",
-                                    session.user.role === 'ADMIN' ? 'bg-gradient-to-r from-red-500 to-pink-600' : 'bg-gradient-to-r from-amber-400 to-orange-500'
+                                    session.user.role === 'ADMIN' ? 'bg-destructive' : 'bg-warning'
                                 )}>
                                     {session.user.role === 'ADMIN' ? 'SUPER ADMIN' : 'PREMIUM'}
                                 </span>
@@ -176,7 +189,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                             className={cn(
                                 "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden",
                                 item.active
-                                    ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/25"
+                                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
                                     : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                                 isCollapsed ? "justify-center" : ""
                             )}
@@ -184,7 +197,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                         >
                             <item.icon className={cn(
                                 "w-5 h-5 transition-transform duration-300 group-hover:scale-110",
-                                item.active ? "text-white" : "text-slate-400 group-hover:text-foreground"
+                                item.active ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
                             )} />
 
                             <span className={cn(
@@ -200,7 +213,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                 {/* Bottom Section */}
                 <div className="p-4 border-t border-border/50 space-y-1">
                     {!isCollapsed && (
-                        <div className="flex items-center justify-between px-2 mb-2">
+                        <div className="flex items-center justify-between px-2 mb-4">
                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">System</span>
                             <span className="text-[10px] text-muted-foreground opacity-50">v2.5.0</span>
                         </div>
@@ -211,7 +224,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                         <button
                             onClick={() => signOut({ callbackUrl: "/login" })}
                             className={cn(
-                                "flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm text-destructive hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors",
+                                "flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors",
                                 isCollapsed ? "justify-center" : ""
                             )}
                             title="Sign Out"

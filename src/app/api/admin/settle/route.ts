@@ -1,3 +1,4 @@
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -5,9 +6,8 @@ import connectToDatabase from "@/lib/db";
 import User, { UserRole } from "@/models/User";
 import Wallet from "@/models/Wallet";
 import Withdrawal, { WithdrawalStatus } from "@/models/Withdrawal";
-import Transaction, { TransactionType } from "@/models/Transaction";
+import { LedgerService } from "@/lib/services/LedgerService";
 import { z } from "zod";
-import mongoose from "mongoose";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +27,8 @@ export async function POST(req: Request) {
 
         await connectToDatabase();
 
-        // 1. Fetch ALL wallets (We check everyone)
+        // 1. Fetch ALL wallets
+        // We use cursor or simple find. For large datasets, cursor is better, but here we keep it simple as per legacy.
         const wallets = await Wallet.find({}).populate("userId", "name email");
 
         if (wallets.length === 0) {
@@ -37,135 +38,83 @@ export async function POST(req: Request) {
             });
         }
 
-        const now = new Date();
-        const bulkWalletOps = [];
-        const bulkWithdrawalOps = [];
-        const bulkTransactionOps = [];
-
-        // Import locally
-        const { sendEmail } = await import("@/lib/email");
-
         let totalSettledAmount = 0;
-        console.log(`[Settlement] STARTING. Min Balance to Keep: ${minBalance}`);
+        let settledCount = 0;
+
+        console.log(`[Settlement] STARTING (Ledger Mode). Min Balance to Keep: ${minBalance}`);
 
         for (const wallet of wallets) {
             const user = wallet.userId as any;
             if (!user || !user._id) continue;
 
-            // --- SIMPLIFIED LOGIC ---
-            // "Access Funds" (Excess Funds) = Current Total Liquid Balance - Min Balance
-            // Liquid Balance = Profit Wallet + Principal Wallet (Compounded)
-            // We DO NOT touch Locked Funds (Investments).
+            const userId = user._id.toString();
 
-            const currentPrincipal = wallet.principal || 0;
-            const currentProfit = wallet.profit || 0;
+            try {
+                // 1. Calculate Current Liquid Balance
+                // We let LedgerService checks handle the exact balance, but we need to estimate 'Excess' to know how much to request.
+                // Note: LedgerService 'requestWithdrawal' uses internal logic to find balance.
+                // But we need to know how much to ASK for.
 
-            const totalLiquidAssets = currentPrincipal + currentProfit;
-            const excessFunds = totalLiquidAssets - minBalance;
+                const currentPrincipal = wallet.principal || 0;
+                const currentProfit = wallet.profit || 0;
+                const currentReferral = wallet.referral || 0;
 
-            console.log(`[Settlement] User ${user.email} | Liquid: ${totalLiquidAssets} (Prin: ${currentPrincipal}, Prof: ${currentProfit}) | Excess: ${excessFunds}`);
+                const totalLiquidAssets = currentPrincipal + currentProfit + currentReferral;
+                const excessFunds = totalLiquidAssets - minBalance;
 
-            if (excessFunds < 1) {
-                // Not enough excess funds to withdraw
-                continue;
-            }
+                if (excessFunds < 1) continue;
 
-            // Format to 2 decimals
-            const grossAmount = Number(excessFunds.toFixed(2));
+                // 2. Perform Withdrawal Request via Ledger
+                // This atomic operation:
+                // - Checks real balance again
+                // - Deducts logic (Waterfall)
+                // - Locks funds
+                // - Creates Transaction
 
-            // Calculate Tax (If applicable)
-            const SURCHARGE_THRESHOLD = 50000;
-            const SURCHARGE_RATE = 0.01;
-            let taxDeducted = 0;
-            let netPay = grossAmount;
+                // NO TAX/PENALTY applied here. exact excessFunds amount.
 
-            if (grossAmount > SURCHARGE_THRESHOLD) {
-                taxDeducted = Number((grossAmount * SURCHARGE_RATE).toFixed(2));
-                netPay = Number((grossAmount - taxDeducted).toFixed(2));
-            }
+                const txn = await LedgerService.requestWithdrawal(userId, excessFunds);
 
-            if (netPay > 0) {
-                totalSettledAmount += netPay;
+                // 3. Update Description to indicate Settlement
+                // We update the underlying transaction description for clarity
+                txn.description = "Quarterly Settlement Sweep";
+                await txn.save();
 
-                // Deduct from Wallet (Priority: Profit -> Principal)
-                let fromProfit = 0;
-                let fromPrincipal = 0;
+                // 4. Create Withdrawal Request Record (linked to txn)
+                // LedgerService.requestWithdrawal returns the Transaction.
+                // We need to create the Withdrawal Request document that Admin sees in Dashboard.
+                // Actually, requestWithdrawal in 'withdraw/route.ts' CREATED the withdrawal doc.
+                // But LedgerService.requestWithdrawal DOES NOT create the 'Withdrawal' Mongoose Document.
+                // It only does Ledger Entries and Transaction Record.
+                // So we must create the Withdrawal Document here.
 
-                if (currentProfit >= grossAmount) {
-                    fromProfit = grossAmount;
-                } else {
-                    fromProfit = currentProfit;
-                    fromPrincipal = grossAmount - currentProfit;
-                }
-
-                // Operation
-                bulkWalletOps.push({
-                    updateOne: {
-                        filter: { _id: wallet._id },
-                        update: {
-                            $inc: {
-                                profit: -fromProfit,
-                                principal: -fromPrincipal,
-                                totalWithdrawn: grossAmount
-                            }
-                        }
-                    }
+                const withdrawal = await Withdrawal.create({
+                    userId: userId,
+                    amount: excessFunds,
+                    status: WithdrawalStatus.PENDING,
+                    adminRemark: `Quarterly Settlement Sweep`,
                 });
 
-                // Withdrawal Request
-                const withdrawalId = new mongoose.Types.ObjectId();
-                bulkWithdrawalOps.push({
-                    insertOne: {
-                        document: {
-                            _id: withdrawalId,
-                            userId: user._id,
-                            amount: netPay,
-                            status: WithdrawalStatus.PENDING,
-                            adminRemark: `Quarterly Settlement [Gross: ₹${grossAmount}, LiquidAsset Sweep]`,
-                            createdAt: now,
-                            updatedAt: now,
-                        }
-                    }
-                });
+                // Link Transaction to Withdrawal
+                txn.referenceId = withdrawal._id;
+                txn.referenceType = "WITHDRAWAL";
+                await txn.save();
 
-                // Transaction Log
-                bulkTransactionOps.push({
-                    insertOne: {
-                        document: {
-                            userId: user._id,
-                            type: TransactionType.WITHDRAWAL,
-                            amount: netPay,
-                            taxDeducted: taxDeducted,
-                            referenceId: withdrawalId,
-                            status: "PENDING",
-                            description: `Quarterly Settlement Sweep`,
-                            createdAt: now,
-                            updatedAt: now,
-                        }
-                    }
-                });
+                totalSettledAmount += excessFunds;
+                settledCount++;
 
-                // Email (Async)
-                sendEmail({
-                    to: user.email,
-                    subject: "🏦 Quarterly Settlement (Fund Sweep)",
-                    html: `<p>Settled Excess Funds: ₹${netPay}</p>`
-                }).catch(e => console.error("Email failed", e));
+                console.log(`[Settlement] User ${user.email} | Swept: ${excessFunds}`);
+
+            } catch (err: any) {
+                console.error(`[Settlement] Failed for user ${user.email}:`, err.message);
+                // Continue to next user
             }
-        }
-
-        // Execute
-        if (bulkWalletOps.length > 0) {
-            console.log(`[Settlement] Executing for ${bulkWalletOps.length} users.`);
-            await Wallet.bulkWrite(bulkWalletOps);
-            await Withdrawal.bulkWrite(bulkWithdrawalOps);
-            await Transaction.bulkWrite(bulkTransactionOps);
         }
 
         return NextResponse.json({
             message: "Settlement processing complete",
             stats: {
-                count: bulkWithdrawalOps.length,
+                count: settledCount,
                 totalAmount: Number(totalSettledAmount.toFixed(2))
             }
         });

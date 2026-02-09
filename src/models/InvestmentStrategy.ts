@@ -14,14 +14,21 @@ export interface IStrategyHistory {
 export interface IInvestmentStrategy extends Document {
     name: string;
     description: string;
+    category: "COMMODITY" | "REAL_ESTATE" | "BUSINESS" | "STARTUP" | "LOCATION_BASED" | "OTHER";
     riskLevel: "LOW" | "MEDIUM" | "HIGH";
     minInvestment: number;
     lockInPeriod: number; // in months
-    estimatedReturn: string; // e.g., "12-14%"
+    totalCapitalDeployed: number; // Real-world capital in this bucket
+    internalROI: number; // Actual internal target ROI (e.g., 24)
+    conservativeROI: number; // Displayed ROI (e.g., 12)
+    disclosureFactor: number; // default 0.5
     allocation: IStrategyAllocation[];
     history: IStrategyHistory[];
-    managerMessage?: string; // "CEO's Note"
+    managerMessage?: string;
+    status: "ACTIVE" | "CLOSED" | "EXITED";
     isActive: boolean;
+    startDate?: Date;
+    endDate?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -30,14 +37,22 @@ const InvestmentStrategySchema = new Schema<IInvestmentStrategy>(
     {
         name: { type: String, required: true },
         description: { type: String, required: true },
+        category: {
+            type: String,
+            enum: ["COMMODITY", "REAL_ESTATE", "BUSINESS", "STARTUP", "LOCATION_BASED", "OTHER"],
+            default: "OTHER",
+        },
         riskLevel: {
             type: String,
             enum: ["LOW", "MEDIUM", "HIGH"],
             default: "MEDIUM",
         },
         minInvestment: { type: Number, default: 5000 },
-        lockInPeriod: { type: Number, required: true }, // months
-        estimatedReturn: { type: String, required: true },
+        lockInPeriod: { type: Number, required: true },
+        totalCapitalDeployed: { type: Number, default: 0 },
+        internalROI: { type: Number, required: true },
+        conservativeROI: { type: Number, required: true },
+        disclosureFactor: { type: Number, default: 0.5 },
         allocation: [
             {
                 asset: { type: String, required: true },
@@ -52,7 +67,14 @@ const InvestmentStrategySchema = new Schema<IInvestmentStrategy>(
             },
         ],
         managerMessage: { type: String },
+        status: {
+            type: String,
+            enum: ["ACTIVE", "CLOSED", "EXITED"],
+            default: "ACTIVE",
+        },
         isActive: { type: Boolean, default: true },
+        startDate: { type: Date },
+        endDate: { type: Date },
     },
     {
         timestamps: true,
@@ -60,8 +82,11 @@ const InvestmentStrategySchema = new Schema<IInvestmentStrategy>(
 );
 
 // Prevent model overwrite in hot-reload
+if (mongoose.models.InvestmentStrategy) {
+    delete mongoose.models.InvestmentStrategy;
+}
+
 const InvestmentStrategy: Model<IInvestmentStrategy> =
-    mongoose.models.InvestmentStrategy ||
     mongoose.model<IInvestmentStrategy>("InvestmentStrategy", InvestmentStrategySchema, "investment_strategies");
 
 export default InvestmentStrategy;
