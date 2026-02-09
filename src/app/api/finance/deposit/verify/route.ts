@@ -6,7 +6,7 @@ import connectToDatabase from "@/lib/db";
 import Deposit, { DepositStatus } from "@/models/Deposit";
 import { LedgerService, SYSTEM_ACCOUNTS } from "@/lib/services/LedgerService";
 import { LedgerAccountType, LedgerDirection, LedgerReferenceType } from "@/models/LedgerEntry";
-import { TransactionType, RiskFlag } from "@/models/Transaction";
+import Transaction, { TransactionType, RiskFlag, TransactionStatus } from "@/models/Transaction";
 import Investment, { LockPlan } from "@/models/Investment";
 import InvestmentLedger, { InvestmentAction } from "@/models/InvestmentLedger";
 import User from "@/models/User";
@@ -159,7 +159,7 @@ export async function POST(req: Request) {
                         fee: 0,
                         netAmount: bonusAmount,
                         description: `Referral Bonus for inviting ${user.name} (Pending Approval)`,
-                        riskFlag: "LOW",
+                        riskFlag: RiskFlag.LOW,
                         referenceId: uniqueDeposit._id // Link to deposit
                     });
                     console.log(`[Verify] Pending Referral Bonus created for ${user.referredBy}`);

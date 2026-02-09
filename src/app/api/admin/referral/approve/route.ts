@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import connectToDatabase from "@/lib/db";
-import Transaction, { TransactionStatus, TransactionType } from "@/models/Transaction";
+import Transaction, { TransactionStatus, TransactionType, RiskFlag } from "@/models/Transaction";
 import User, { UserRole } from "@/models/User";
 import Wallet from "@/models/Wallet";
 import { LedgerService } from "@/lib/services/LedgerService";
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
 
         // 6. Update Original Transaction Status
         transaction.status = TransactionStatus.SUCCESS;
-        transaction.riskFlag = "LOW"; // Verified
+        transaction.riskFlag = RiskFlag.LOW; // Verified
         transaction.metadata = { ...transaction.metadata, approvedBy: adminId, approvedAt: new Date() };
         await transaction.save();
 
