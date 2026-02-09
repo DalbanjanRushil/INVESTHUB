@@ -81,7 +81,7 @@ src/
 3.  **Environment Variables**
     Create a `.env.local` file:
     ```env
-     MONGODB_URI= your mongo db uri 
+MONGODB_URI= your mongo db uri 
 NEXTAUTH_SECRET=create , your own secret key 
 NEXTAUTH_URL=http://localhost:3000
 NEXT_PUBLIC_RAZORPAY_KEY_ID= create razorpay id
