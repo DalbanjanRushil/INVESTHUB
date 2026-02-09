@@ -81,15 +81,15 @@ src/
 3.  **Environment Variables**
     Create a `.env.local` file:
     ```env
-MONGODB_URI= your mongo db uri 
-NEXTAUTH_SECRET=create , your own secret key 
-NEXTAUTH_URL=http://localhost:3000
-NEXT_PUBLIC_RAZORPAY_KEY_ID= create razorpay id
-RAZORPAY_KEY_SECRET= razorpay secret key 
-EMAIL_USER= enter email for the managemnet who is responsible for mailing for the system 
-EMAIL_PASS= email password , which will be know as app password 
-GOOGLE_CLIENT_ID= google ai studio , client id 
-GOOGLE_CLIENT_SECRET= scret key 
+      MONGODB_URI= your mongo db uri 
+      NEXTAUTH_SECRET=create , your own secret key 
+      NEXTAUTH_URL=http://localhost:3000
+      NEXT_PUBLIC_RAZORPAY_KEY_ID= create razorpay id
+      RAZORPAY_KEY_SECRET= razorpay secret key 
+      EMAIL_USER= enter email for the managemnet who is responsible for mailing for the system 
+      EMAIL_PASS= email password , which will be know as app password 
+      GOOGLE_CLIENT_ID= google ai studio , client id 
+      GOOGLE_CLIENT_SECRET= scret key 
     ```
 
 4.  **Run Development Server**
