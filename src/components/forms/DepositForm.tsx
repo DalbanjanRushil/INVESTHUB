@@ -99,20 +99,20 @@ export default function DepositModal() {
                 id="razorpay-checkout-js"
                 src="https://checkout.razorpay.com/v1/checkout.js"
             />
-            <div className="p-6 bg-white dark:bg-[#0F172A] border border-gray-100 dark:border-white/10 rounded-2xl shadow-sm">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-white dark:text-white">
+            <div className="p-6 bg-card border border-border rounded-2xl shadow-sm">
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-foreground">
                     <CreditCard className="w-5 h-5 text-emerald-400" />
                     Add Funds (Simulation)
                 </h3>
                 <div className="space-y-4">
                     <div>
-                        <label className="text-xs font-semibold uppercase text-slate-300 dark:text-slate-300 mb-1 block">Amount (INR)</label>
+                        <label className="text-xs font-semibold uppercase text-muted-foreground mb-1 block">Amount (INR)</label>
                         <input
                             type="number"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             placeholder="e.g. 5000"
-                            className="w-full px-4 py-2 bg-slate-900 dark:bg-slate-900 border border-white/10 dark:border-white/10 rounded-lg text-white dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                            className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:ring-2 focus:ring-emerald-500 outline-none"
                         />
                     </div>
                     <button
@@ -122,7 +122,7 @@ export default function DepositModal() {
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Deposit via Razorpay (Test)"}
                     </button>
-                    <p className="text-xs text-center text-slate-400 dark:text-slate-400">
+                    <p className="text-xs text-center text-muted-foreground">
                         *This is a test mode simulation. No real money is deducted.
                     </p>
                 </div>

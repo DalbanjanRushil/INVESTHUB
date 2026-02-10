@@ -1,18 +1,18 @@
 "use client";
 
 import React from "react";
-import { 
-    PieChart, 
-    Pie, 
-    Cell, 
-    ResponsiveContainer, 
-    BarChart, 
-    Bar, 
-    XAxis, 
-    YAxis, 
-    CartesianGrid, 
-    Tooltip, 
-    Legend 
+import {
+    PieChart,
+    Pie,
+    Cell,
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend
 } from "recharts";
 import { motion } from "framer-motion";
 
@@ -57,14 +57,14 @@ export default function AllocationCharts({ strategies }: AllocationChartsProps) 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 my-12">
             {/* Portfolio Allocation Pie Chart */}
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-8 rounded-3xl bg-[#0F172A] border border-slate-800 shadow-lg"
+                className="p-8 rounded-3xl bg-card border border-border shadow-lg"
             >
                 <div className="mb-6">
-                    <h3 className="text-lg font-bold text-white mb-1">Portfolio Allocation</h3>
-                    <p className="text-xs text-slate-500">Capital distribution across all active strategies</p>
+                    <h3 className="text-lg font-bold text-foreground mb-1">Portfolio Allocation</h3>
+                    <p className="text-xs text-muted-foreground">Capital distribution across all active strategies</p>
                 </div>
                 <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -82,38 +82,38 @@ export default function AllocationCharts({ strategies }: AllocationChartsProps) 
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
-                            <Tooltip 
-                                contentStyle={{ backgroundColor: '#0B1120', border: '1px solid #1E293B', borderRadius: '12px' }}
-                                itemStyle={{ color: '#F8FAFC' }}
+                            <Tooltip
+                                contentStyle={{ backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', borderRadius: '12px' }}
+                                itemStyle={{ color: 'var(--color-text-primary)' }}
                                 formatter={(value: any) => `₹${Number(value).toLocaleString('en-IN')}`}
                             />
-                            <Legend verticalAlign="bottom" height={36}/>
+                            <Legend verticalAlign="bottom" height={36} />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
             </motion.div>
 
             {/* ROI Distribution Bar Chart */}
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 }}
-                className="p-8 rounded-3xl bg-[#0F172A] border border-slate-800 shadow-lg"
+                className="p-8 rounded-3xl bg-card border border-border shadow-lg"
             >
                 <div className="mb-6">
-                    <h3 className="text-lg font-bold text-white mb-1">ROI Distribution</h3>
-                    <p className="text-xs text-slate-500">Annualized conservative returns by strategy</p>
+                    <h3 className="text-lg font-bold text-foreground mb-1">ROI Distribution</h3>
+                    <p className="text-xs text-muted-foreground">Annualized conservative returns by strategy</p>
                 </div>
                 <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={barData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" vertical={false} />
-                            <XAxis dataKey="name" stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} />
-                            <YAxis stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} />
-                            <Tooltip 
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
+                            <XAxis dataKey="name" stroke="#a1a1aa" fontSize={10} tickLine={false} axisLine={false} />
+                            <YAxis stroke="#a1a1aa" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}%`} />
+                            <Tooltip
                                 cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                contentStyle={{ backgroundColor: '#0B1120', border: '1px solid #1E293B', borderRadius: '12px' }}
-                                itemStyle={{ color: '#F8FAFC' }}
+                                contentStyle={{ backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', borderRadius: '12px' }}
+                                itemStyle={{ color: 'var(--color-text-primary)' }}
                                 formatter={(value: any) => [`${value}% ROI`, 'Conservative Target']}
                             />
                             <Bar dataKey="roi" fill="#10b981" radius={[4, 4, 0, 0]} />

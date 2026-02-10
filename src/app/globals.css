@@ -61,65 +61,75 @@
 
 @layer base {
   :root {
-    /* Base Theme Tokens - Defaulting to Premium Dark */
-    --color-bg-primary: #0B1120;
-    /* Premium Dark Navy */
-    --color-bg-secondary: #0f172a;
-    /* Slate 900 */
-    --color-bg-surface: #1e293b;
-    /* Slate 800 */
+    /* Base Theme Tokens - Unified Zinc Premium Dark */
+    --color-bg-primary: #09090b;
+    /* Zinc 950 */
+    --color-bg-secondary: #000000;
+    /* Pure Black for contrast or deep layout */
+    --color-bg-surface: #18181b;
+    /* Zinc 900 */
 
-    --color-text-primary: #f8fafc;
-    /* Slate 50 */
-    --color-text-secondary: #94a3b8;
-    /* Slate 400 */
-    --color-text-muted: #64748b;
-    /* Slate 500 */
+    /* Typography - High Visibility System */
+    --color-text-primary: #ffffff;
+    /* White */
+    --color-text-secondary: #e4e4e7;
+    /* Zinc 200 */
+    --color-text-muted: #a1a1aa;
+    /* Zinc 400 */
+    --color-text-disabled: #71717a;
+    /* Zinc 500 */
 
+    /* Accents - Retaining Brand Colors but checking contrast */
     --color-accent-primary: #10b981;
     /* Emerald 500 */
     --color-accent-secondary: #06b6d4;
     /* Cyan 500 */
     --color-danger: #ef4444;
+    /* Red 500 */
     --color-warning: #f59e0b;
+    /* Amber 500 */
 
-    --color-border: #1e293b;
-    /* Slate 800 (Low contrast border) */
-
-    /* White/Black border for very subtle separators */
-    --color-border-subtle: rgba(255, 255, 255, 0.05);
+    /* Borders */
+    --color-border: #27272a;
+    /* Zinc 800 */
+    --color-border-subtle: rgba(255, 255, 255, 0.08);
 
     /* Global Defaults */
     --radius: 0.75rem;
-    /* More rounded 12px/xl look */
   }
 
-  /* User Theme (Also Dark - Unified Premium Look) */
+  /* User Theme */
   [data-theme="user"] {
-    --color-bg-primary: #0B1120;
-    --color-bg-secondary: #020617;
-    --color-bg-surface: #1e293b;
+    --color-bg-primary: #09090b;
+    /* Zinc 950 */
+    --color-bg-secondary: #18181b;
+    /* Zinc 900 */
+    --color-bg-surface: #27272a;
+    /* Zinc 800 (Cards) */
 
     --color-text-primary: #ffffff;
-    --color-text-secondary: #94a3b8;
-    --color-text-muted: #475569;
+    --color-text-secondary: #e4e4e7;
+    /* Zinc 200 */
+    --color-text-muted: #a1a1aa;
+    /* Zinc 400 */
 
-    --color-border: rgba(255, 255, 255, 0.08);
-    /* Glassy border */
+    --color-border: rgba(255, 255, 255, 0.1);
   }
 
-  /* Admin Theme (Dark Mode - Potentially different accents if needed, but keeping base consistent) */
+  /* Admin Theme - Consistent Consistency */
   [data-theme="admin"] {
-    --color-bg-primary: #020617;
-    /* Slightly darker/blacker for Admin Command Center vibe */
-    --color-bg-secondary: #0f172a;
-    --color-bg-surface: #111827;
+    --color-bg-primary: #000000;
+    /* Pure Black background */
+    --color-bg-secondary: #09090b;
+    /* Zinc 950 */
+    --color-bg-surface: #18181b;
+    /* Zinc 900 */
 
-    --color-text-primary: #f9fafb;
-    --color-text-secondary: #d1d5db;
-    --color-text-muted: #6b7280;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #e4e4e7;
+    --color-text-muted: #a1a1aa;
 
-    --color-border: #1f2933;
+    --color-border: #27272a;
   }
 }
 

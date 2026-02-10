@@ -40,24 +40,24 @@ export default function SettlementForm() {
     };
 
     return (
-        <div className="bg-[#0F172A] rounded-2xl border border-slate-800 shadow-xl p-6">
-            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-white">
+        <div className="bg-card rounded-2xl border border-border shadow-xl p-6">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-foreground">
                 <Landmark className="w-5 h-5 text-purple-400" />
                 Quarterly Settlement
             </h3>
-            <p className="text-sm text-slate-400 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
                 Automatically create withdrawal requests for users with balance above a threshold.
             </p>
 
             <form onSubmit={handleSettlement} className="space-y-4">
                 <div>
-                    <label className="text-xs font-semibold uppercase text-slate-300 mb-1 block">
+                    <label className="text-xs font-semibold uppercase text-muted-foreground mb-1 block">
                         Minimum Wallet Balance To Keep (₹)
                     </label>
                     <input
                         type="number"
                         min="0"
-                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-purple-500/60 outline-none placeholder:text-slate-500"
+                        className="w-full px-3 py-2 bg-input border border-border text-foreground rounded-lg focus:ring-2 focus:ring-purple-500/60 outline-none placeholder:text-muted-foreground"
                         placeholder="e.g. 0 to withdraw all"
                         value={threshold}
                         onChange={(e) => setThreshold(e.target.value)}
