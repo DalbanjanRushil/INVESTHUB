@@ -36,7 +36,7 @@ const InvestmentSchema = new Schema<IInvestment>(
         amount: {
             type: Number,
             required: true,
-            min: 1, // Allow any valid deposit
+            min: 0, // Allow 0 for liquidated investments
         },
         plan: {
             type: String,
