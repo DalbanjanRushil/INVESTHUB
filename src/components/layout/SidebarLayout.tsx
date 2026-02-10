@@ -25,6 +25,7 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import NotificationBell from "./NotificationBell";
+import { ThemeToggle } from "../ui/theme-toggle";
 
 export default function SidebarLayout({ children }: { children: React.ReactNode }) {
     const { data: session } = useSession();
@@ -83,9 +84,15 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
     // Admin Navigation
     const adminNavItems = [
         {
+            label: "User Dashboard",
+            href: "/dashboard",
+            icon: LayoutDashboard,
+            active: pathname === "/dashboard",
+        },
+        {
             label: "Command Center",
             href: "/admin/dashboard",
-            icon: LayoutDashboard,
+            icon: ShieldCheck,
             active: pathname === "/admin/dashboard",
         },
         {
@@ -219,7 +226,10 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                         </div>
                     )}
 
-                    <div className={cn("flex items-center gap-2", isCollapsed ? "flex-col" : "")}>
+                    <div className={cn("flex flex-col gap-2", isCollapsed ? "items-center" : "")}>
+                        {/* Theme Toggle */}
+                        <ThemeToggle isCollapsed={isCollapsed} />
+
                         {/* Logout */}
                         <button
                             onClick={() => signOut({ callbackUrl: "/login" })}

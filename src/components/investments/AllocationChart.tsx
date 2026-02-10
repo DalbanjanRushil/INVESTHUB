@@ -18,11 +18,11 @@ interface AllocationChartProps {
 const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 p-3 rounded-xl shadow-xl transform translate-y-[-10px]">
-                <p className="font-bold text-gray-900 dark:text-white mb-1">{payload[0].name}</p>
+            <div className="bg-popover backdrop-blur-sm border border-border p-3 rounded-xl shadow-xl transform translate-y-[-10px]">
+                <p className="font-bold text-popover-foreground mb-1">{payload[0].name}</p>
                 <div className="flex items-center gap-2 text-sm">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: payload[0].payload.color }}></span>
-                    <span className="font-mono">{payload[0].value}% Allocation</span>
+                    <span className="font-mono text-muted-foreground">{payload[0].value}% Allocation</span>
                 </div>
             </div>
         );
@@ -35,12 +35,12 @@ const RenderLegend = (props: any) => {
     return (
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-4">
             {payload?.map((entry: any, index: number) => (
-                <div key={`item-${index}`} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+                <div key={`item-${index}`} className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary transition-colors cursor-pointer group">
                     <div className="flex items-center gap-2">
                         <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                        <span className="text-sm font-medium text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">{entry.value}</span>
+                        <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground">{entry.value}</span>
                     </div>
-                    <span className="text-sm font-bold font-mono text-gray-900 dark:text-white">{entry.payload.percentage}%</span>
+                    <span className="text-sm font-bold font-mono text-foreground">{entry.payload.percentage}%</span>
                 </div>
             ))}
         </div>

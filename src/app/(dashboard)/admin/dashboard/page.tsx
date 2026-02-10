@@ -75,69 +75,7 @@ async function getAdminStats() {
     };
 }
 
-async function getUserData(userIdStr: string) {
-    await connectToDatabase();
-    const userId = new mongoose.Types.ObjectId(userIdStr);
 
-    const [wallet, transactions, user, totalReferrals, activeInvestments] = await Promise.all([
-        Wallet.findOne({ userId }),
-        Transaction.find({ userId }).sort({ createdAt: -1 }).limit(10).lean(),
-        User.findById(userId),
-        User.countDocuments({ referredBy: userId }),
-        Investment.find({ userId, isActive: true }).lean(),
-    ]);
-
-    // Self-Healing & Migration for Admin View
-    if (wallet) {
-        let isModified = false;
-        if ((!wallet.principal || wallet.principal === 0) && (wallet.balance && wallet.balance > 0)) {
-            wallet.principal = wallet.balance;
-            wallet.balance = 0;
-            isModified = true;
-        }
-        if (wallet.principal === undefined) { wallet.principal = 0; isModified = true; }
-        if (wallet.profit === undefined) { wallet.profit = 0; isModified = true; }
-        if (wallet.referral === undefined) { wallet.referral = 0; isModified = true; }
-        if (wallet.locked === undefined) { wallet.locked = 0; isModified = true; }
-
-        // Negative Balance Fix (Self-Healing from Calculation Errors)
-        if ((wallet.principal || 0) < 0) { wallet.principal = 0; isModified = true; }
-        if ((wallet.profit || 0) < 0) { wallet.profit = 0; isModified = true; }
-        if ((wallet.referral || 0) < 0) { wallet.referral = 0; isModified = true; }
-        if ((wallet.locked || 0) < 0) { wallet.locked = 0; isModified = true; }
-
-        if (activeInvestments && activeInvestments.length > 0) {
-            const realLocked = activeInvestments
-                .filter((inv: any) => inv.plan !== 'FLEXI')
-                .reduce((sum: number, inv: any) => sum + (inv.amount || 0), 0);
-            if ((wallet.locked || 0) < realLocked) {
-                wallet.locked = realLocked;
-                isModified = true;
-            }
-            const realFlexi = activeInvestments
-                .filter((inv: any) => inv.plan === 'FLEXI')
-                .reduce((sum: number, inv: any) => sum + (inv.amount || 0), 0);
-            if ((wallet.principal || 0) < realFlexi) {
-                wallet.principal = realFlexi;
-                isModified = true;
-            }
-        }
-        if (isModified) await wallet.save();
-    }
-
-    if (user && !user.referralCode) {
-        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-        user.referralCode = `INVEST-HUB-${randomSuffix}`;
-        await user.save();
-    }
-
-    return {
-        wallet: wallet ? JSON.parse(JSON.stringify(wallet)) : null,
-        transactions: JSON.parse(JSON.stringify(transactions)),
-        user: user ? JSON.parse(JSON.stringify(user)) : null,
-        totalReferrals
-    };
-}
 
 export default async function AdminDashboardPage() {
     const session = await getServerSession(authOptions);
@@ -146,12 +84,9 @@ export default async function AdminDashboardPage() {
         redirect("/dashboard");
     }
 
-    const [adminStats, userData] = await Promise.all([
-        getAdminStats(),
-        getUserData(session.user.id)
-    ]);
+    const adminStats = await getAdminStats();
 
     return (
-        <DashboardToggle adminStats={adminStats} userData={userData} />
+        <DashboardToggle adminStats={adminStats} />
     );
 }

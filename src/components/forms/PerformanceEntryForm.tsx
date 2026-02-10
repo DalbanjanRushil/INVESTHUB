@@ -56,8 +56,8 @@ export default function PerformanceEntryForm() {
     };
 
     return (
-        <div className="bg-[#0F172A] border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-xl">
+            <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
                 <Zap className="w-5 h-5 text-yellow-500" />
                 Declare Performance
             </h3>
@@ -65,74 +65,74 @@ export default function PerformanceEntryForm() {
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Type</label>
+                        <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Type</label>
                         <select
                             value={periodType}
                             onChange={(e) => setPeriodType(e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm outline-none focus:border-emerald-500 transition-all appearance-none cursor-pointer"
+                            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm outline-none focus:border-emerald-500 transition-all appearance-none cursor-pointer"
                         >
-                            <option value="MONTHLY" className="bg-[#0B1120]">Monthly</option>
-                            <option value="QUARTERLY" className="bg-[#0B1120]">Quarterly</option>
-                            <option value="YEARLY" className="bg-[#0B1120]">Yearly</option>
+                            <option value="MONTHLY" className="bg-background text-foreground">Monthly</option>
+                            <option value="QUARTERLY" className="bg-background text-foreground">Quarterly</option>
+                            <option value="YEARLY" className="bg-background text-foreground">Yearly</option>
                         </select>
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Label</label>
+                        <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Label</label>
                         <input
                             type="text"
                             required
                             placeholder="e.g. Jan 2026"
                             value={periodLabel}
                             onChange={(e) => setPeriodLabel(e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm placeholder:text-slate-600"
+                            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground/50"
                         />
                     </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-xs font-semibold uppercase text-green-500/80 mb-1">Gross Profit (₹)</label>
+                        <label className="block text-xs font-semibold uppercase text-emerald-600 dark:text-emerald-500 mb-1">Gross Profit (₹)</label>
                         <input
                             type="number"
                             required
                             min="0"
                             value={grossProfit}
                             onChange={(e) => setGrossProfit(e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+                            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold uppercase text-red-500/80 mb-1">Gross Loss (₹)</label>
+                        <label className="block text-xs font-semibold uppercase text-destructive mb-1">Gross Loss (₹)</label>
                         <input
                             type="number"
                             required
                             min="0"
                             value={grossLoss}
                             onChange={(e) => setGrossLoss(e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+                            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm"
                         />
                     </div>
                 </div>
 
                 <div>
-                    <label className="block text-xs font-semibold uppercase text-blue-500/80 mb-1">Capital Deployed (₹)</label>
+                    <label className="block text-xs font-semibold uppercase text-blue-600 dark:text-blue-500 mb-1">Capital Deployed (₹)</label>
                     <input
                         type="number"
                         required
                         min="1"
                         value={capitalDeployed}
                         onChange={(e) => setCapitalDeployed(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-xs font-semibold uppercase text-slate-500 mb-1">Notes / Context</label>
+                    <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Notes / Context</label>
                     <textarea
                         rows={3}
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm placeholder:text-slate-600"
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground/50"
                         placeholder="Market conditions, strategy used, etc."
                     />
                 </div>
@@ -141,11 +141,11 @@ export default function PerformanceEntryForm() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                        className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Declare Period"}
                     </button>
-                    <p className="text-[10px] text-center text-slate-500 mt-2">
+                    <p className="text-[10px] text-center text-muted-foreground mt-2">
                         Creates a DRAFT. You must LOCK it later to make it public.
                     </p>
                 </div>

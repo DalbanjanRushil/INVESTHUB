@@ -16,13 +16,13 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         const val = payload[0].value;
         return (
-            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 p-4 rounded-xl shadow-xl">
-                <p className="text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">{label}</p>
+            <div className="bg-popover backdrop-blur-sm border border-border p-4 rounded-xl shadow-xl">
+                <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">{label}</p>
                 <div className="flex items-center gap-2">
                     <span className="text-xl font-bold font-mono text-green-600 dark:text-green-400">
                         {val > 0 ? "+" : ""}{val}%
                     </span>
-                    <span className="text-xs font-medium text-gray-500 bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded">ROI</span>
+                    <span className="text-xs font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">ROI</span>
                 </div>
             </div>
         );
@@ -46,23 +46,23 @@ export default function PerformanceGraph({ data }: PerformanceGraphProps) {
                             <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" opacity={0.1} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" opacity={0.3} />
                     <XAxis
                         dataKey="date"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                        tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }}
                         interval="preserveStartEnd"
                         padding={{ left: 10, right: 10 }}
                     />
                     <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                        tick={{ fontSize: 11, fill: 'var(--color-text-muted)' }}
                         domain={[0, 'auto']}
                     />
                     {/* Benchmark Line (Simulated Nifty 50 Avg) */}
-                    <ReferenceLine y={5} stroke="#6B7280" strokeDasharray="3 3" opacity={0.5} label={{ position: 'right', value: 'Market Avg (5%)', fill: '#6B7280', fontSize: 10 }} />
+                    <ReferenceLine y={5} stroke="var(--color-text-muted)" strokeDasharray="3 3" opacity={0.5} label={{ position: 'right', value: 'Market Avg (5%)', fill: 'var(--color-text-muted)', fontSize: 10 }} />
 
                     <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#10b981', strokeWidth: 1, strokeDasharray: '4 4' }} />
                     <Area

@@ -68,10 +68,10 @@ export default function ContentFeed() {
                             key={tab}
                             onClick={() => setActiveTab(tab as any)}
                             className={cn(
-                                "px-4 py-2 rounded-lg text-xs font-bold transition-all",
+                                "px-4 py-2 rounded-lg text-xs font-bold transition-all border border-transparent",
                                 activeTab === tab
-                                    ? "bg-primary text-primary-foreground shadow-lg shadow-blue-500/25"
-                                    : "bg-white dark:bg-[#1F2937] text-muted-foreground border border-border hover:bg-muted"
+                                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
+                                    : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground hover:border-border/80"
                             )}
                         >
                             {tab === "ALL" ? "All Updates" : tab === "VIDEO" ? "Video Analysis" : "Charts"}

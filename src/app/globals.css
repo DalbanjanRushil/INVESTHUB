@@ -61,25 +61,23 @@
 
 @layer base {
   :root {
-    /* Base Theme Tokens - Unified Zinc Premium Dark */
-    --color-bg-primary: #09090b;
-    /* Zinc 950 */
-    --color-bg-secondary: #000000;
-    /* Pure Black for contrast or deep layout */
-    --color-bg-surface: #18181b;
-    /* Zinc 900 */
+    /* LIGHT MODE (Default) - Clean, Modern SaaS Identity */
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f4f4f5;
+    /* Zinc 100 */
+    --color-bg-surface: #ffffff;
 
-    /* Typography - High Visibility System */
-    --color-text-primary: #ffffff;
-    /* White */
-    --color-text-secondary: #e4e4e7;
-    /* Zinc 200 */
+    /* Typography */
+    --color-text-primary: #09090b;
+    /* Zinc 950 */
+    --color-text-secondary: #52525b;
+    /* Zinc 600 */
     --color-text-muted: #a1a1aa;
     /* Zinc 400 */
-    --color-text-disabled: #71717a;
-    /* Zinc 500 */
+    --color-text-disabled: #d4d4d8;
+    /* Zinc 300 */
 
-    /* Accents - Retaining Brand Colors but checking contrast */
+    /* Universal Accents */
     --color-accent-primary: #10b981;
     /* Emerald 500 */
     --color-accent-secondary: #06b6d4;
@@ -90,46 +88,36 @@
     /* Amber 500 */
 
     /* Borders */
-    --color-border: #27272a;
-    /* Zinc 800 */
-    --color-border-subtle: rgba(255, 255, 255, 0.08);
+    --color-border: #e4e4e7;
+    /* Zinc 200 */
+    --color-border-subtle: rgba(0, 0, 0, 0.08);
 
-    /* Global Defaults */
+    /* Globals */
     --radius: 0.75rem;
   }
 
-  /* User Theme */
-  [data-theme="user"] {
+  /* DARK MODE (.dark class applied by next-themes) */
+  .dark {
     --color-bg-primary: #09090b;
     /* Zinc 950 */
-    --color-bg-secondary: #18181b;
+    --color-bg-secondary: #000000;
+    /* Pure Black */
+    --color-bg-surface: #18181b;
     /* Zinc 900 */
-    --color-bg-surface: #27272a;
-    /* Zinc 800 (Cards) */
 
+    /* Typography */
     --color-text-primary: #ffffff;
     --color-text-secondary: #e4e4e7;
     /* Zinc 200 */
     --color-text-muted: #a1a1aa;
     /* Zinc 400 */
+    --color-text-disabled: #71717a;
+    /* Zinc 500 */
 
-    --color-border: rgba(255, 255, 255, 0.1);
-  }
-
-  /* Admin Theme - Consistent Consistency */
-  [data-theme="admin"] {
-    --color-bg-primary: #000000;
-    /* Pure Black background */
-    --color-bg-secondary: #09090b;
-    /* Zinc 950 */
-    --color-bg-surface: #18181b;
-    /* Zinc 900 */
-
-    --color-text-primary: #ffffff;
-    --color-text-secondary: #e4e4e7;
-    --color-text-muted: #a1a1aa;
-
+    /* Borders */
     --color-border: #27272a;
+    /* Zinc 800 */
+    --color-border-subtle: rgba(255, 255, 255, 0.08);
   }
 }
 

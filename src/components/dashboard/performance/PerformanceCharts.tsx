@@ -16,8 +16,8 @@ export default function PerformanceCharts({ data }: { data: any[] }) {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* ROI Trend */}
-            <div className="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 p-6 rounded-2xl shadow-sm">
-                <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-4">ROI Consistency (%)</h3>
+            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
+                <h3 className="font-bold text-foreground mb-4">ROI Consistency (%)</h3>
                 <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={chartData}>
@@ -27,12 +27,12 @@ export default function PerformanceCharts({ data }: { data: any[] }) {
                                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" opacity={0.2} />
-                            <XAxis dataKey="label" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
-                            <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" opacity={0.5} />
+                            <XAxis dataKey="label" stroke="var(--color-text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis stroke="var(--color-text-muted)" fontSize={12} tickLine={false} axisLine={false} />
                             <Tooltip
-                                contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff' }}
-                                itemStyle={{ color: '#fff' }}
+                                contentStyle={{ backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
+                                itemStyle={{ color: 'var(--color-text-primary)' }}
                             />
                             <Area type="monotone" dataKey="roi" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorRoi)" />
                         </AreaChart>
@@ -41,18 +41,18 @@ export default function PerformanceCharts({ data }: { data: any[] }) {
             </div>
 
             {/* Net Profit Growth */}
-            <div className="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 p-6 rounded-2xl shadow-sm">
-                <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-4">Net Profit Generated (₹)</h3>
+            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
+                <h3 className="font-bold text-foreground mb-4">Net Profit Generated (₹)</h3>
                 <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={chartData}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" opacity={0.2} />
-                            <XAxis dataKey="label" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
-                            <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" opacity={0.5} />
+                            <XAxis dataKey="label" stroke="var(--color-text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                            <YAxis stroke="var(--color-text-muted)" fontSize={12} tickLine={false} axisLine={false} />
                             <Tooltip
-                                cursor={{ fill: '#374151', opacity: 0.2 }}
-                                contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff' }}
-                                itemStyle={{ color: '#fff' }}
+                                cursor={{ fill: 'var(--color-bg-secondary)', opacity: 0.5 }}
+                                contentStyle={{ backgroundColor: 'var(--color-bg-surface)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}
+                                itemStyle={{ color: 'var(--color-text-primary)' }}
                             />
                             <Bar dataKey="profit" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                         </BarChart>

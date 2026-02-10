@@ -63,14 +63,14 @@ export default function AdminInvestmentsPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button 
+                    <button
                         onClick={fetchStrategyData}
-                        className="p-2 text-slate-400 hover:text-white transition-colors"
+                        className="p-2 text-muted-foreground hover:text-foreground transition-colors"
                         title="Refresh Data"
                     >
                         <RefreshCw className="w-5 h-5" />
                     </button>
-                    <button 
+                    <button
                         onClick={openCreateForm}
                         className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20"
                     >
@@ -81,8 +81,8 @@ export default function AdminInvestmentsPage() {
 
             {strategyData ? (
                 <div className="space-y-12">
-                    <StrategyManager 
-                        strategies={strategyData.strategies} 
+                    <StrategyManager
+                        strategies={strategyData.strategies}
                         metrics={strategyData.metrics}
                         isAdmin={true}
                         onEdit={openEditForm}
@@ -95,7 +95,7 @@ export default function AdminInvestmentsPage() {
                 </div>
             )}
 
-            <StrategyEntryForm 
+            <StrategyEntryForm
                 isOpen={isFormOpen}
                 onClose={() => setIsFormOpen(false)}
                 onSuccess={fetchStrategyData}

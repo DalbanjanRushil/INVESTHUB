@@ -177,7 +177,7 @@ function StrategyCard({ strategy, idx, isAdmin, totalCapital, onEdit }: { strate
                 <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${riskColor}`}>
                     {strategy.riskLevel} RISK • {strategy.category.replace('_', ' ')}
                 </div>
-                <div className="p-2 bg-white/5 rounded-lg text-muted-foreground">
+                <div className="p-2 bg-muted rounded-lg text-muted-foreground">
                     <TrendingUp className="w-4 h-4" />
                 </div>
             </div>
