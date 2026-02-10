@@ -198,8 +198,8 @@ export const authOptions: NextAuthOptions = {
                         session.user.role = freshUser.role;
                     }
                 } catch (error) {
-                    // Silently fail to token data if DB is unreachable to prevent session crash
-                    // console.error("Session sync failed:", error);
+                    console.error("Session sync failed:", error);
+                    // Fallback to token data already set above
                 }
             }
 
