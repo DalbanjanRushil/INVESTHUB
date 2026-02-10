@@ -7,6 +7,7 @@ import { AlertTriangle, Activity, Database, FileText, ArrowRight, Rss, Users, La
 import AdminRealTimeUpdater from "@/components/admin/AdminRealTimeUpdater";
 import ContentFeed from "@/components/dashboard/ContentFeed";
 import UserManagementModal from "@/components/admin/UserManagementModal";
+import WithdrawalTable from "@/components/admin/WithdrawalTable";
 
 interface AdminDashboardViewProps {
     stats: {
@@ -116,6 +117,23 @@ export default function AdminDashboardView({ stats }: AdminDashboardViewProps) {
                         </p>
                     </Link>
                 </div>
+
+                {/* Pending Actions Feed (If Any) */}
+                {stats.pendingWithdrawalsList.length > 0 && (
+                    <div className="bg-card border border-warning/50 rounded-lg p-6 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
+                            <h2 className="text-sm font-bold flex items-center gap-2 text-warning uppercase tracking-wider">
+                                <AlertTriangle className="w-4 h-4" />
+                                Rapid Response Queue
+                            </h2>
+                            <Link href="/admin/operations" className="text-xs font-mono text-warning hover:underline opacity-80 hover:opacity-100">
+                                FULL OPERATION LEDGER &rarr;
+                            </Link>
+                        </div>
+                        <WithdrawalTable data={stats.pendingWithdrawalsList} />
+                    </div>
+                )}
+
 
                 {/* Technical Panels */}
                 <div>
