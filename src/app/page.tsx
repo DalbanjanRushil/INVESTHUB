@@ -60,7 +60,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="relative z-10 text-center px-4 max-w-5xl mx-auto mt-[-50px]">
+          <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
             {/* Badge */}
             <div className="inline-block mb-6 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-700">
               <span className="text-emerald-400 text-sm font-medium tracking-wide flex items-center gap-2">

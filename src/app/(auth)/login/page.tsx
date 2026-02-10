@@ -65,7 +65,7 @@ export default function LoginPage() {
                 </div>
             </nav>
 
-            <div className="flex-1 flex items-center justify-center p-4 relative pt-20 md:pt-0">
+            <div className="flex-1 flex items-center justify-center p-4 relative pt-24 md:pt-32">
                 {/* Background Blobs */}
                 <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-emerald-500/20 rounded-full blur-[100px] pointer-events-none opacity-50 animate-pulse"></div>
                 <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-cyan-500/20 rounded-full blur-[100px] pointer-events-none opacity-50 animate-bounce-slow"></div>
