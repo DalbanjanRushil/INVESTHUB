@@ -65,6 +65,12 @@ export async function POST(req: Request) {
                 // If using LedgerService.approveWithdrawal (which we customized for this):
                 await LedgerService.approveWithdrawal(withdrawalId, session.user.id, txn ? txn._id.toString() : "");
 
+                // Update Transaction with UTR
+                if (txn) {
+                    txn.utrNumber = utrNumber;
+                    await txn.save();
+                }
+
                 // Update Withdrawal Record
                 withdrawal.status = WithdrawalStatus.APPROVED;
                 withdrawal.adminRemark = remark || "Approved by Admin";

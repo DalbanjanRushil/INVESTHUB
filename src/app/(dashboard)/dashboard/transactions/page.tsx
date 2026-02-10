@@ -51,6 +51,7 @@ export default async function TransactionsPage() {
                                     <th className="px-6 py-5 text-right">Amount</th>
                                     <th className="px-6 py-5 text-right">Status</th>
                                     <th className="px-6 py-5 text-center">Ref ID</th>
+                                    <th className="px-6 py-5 text-right">UTR No.</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
@@ -102,6 +103,9 @@ export default async function TransactionsPage() {
                                         </td>
                                         <td className="px-6 py-4 text-center text-[10px] font-mono text-muted-foreground opacity-70 group-hover:opacity-100 transition-opacity">
                                             {t._id.substring(0, 8).toUpperCase()}
+                                        </td>
+                                        <td className="px-6 py-4 text-right text-xs font-mono text-muted-foreground group-hover:text-foreground transition-colors">
+                                            {t.utrNumber || "-"}
                                         </td>
                                     </tr>
                                 ))}

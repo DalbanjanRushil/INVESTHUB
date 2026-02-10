@@ -19,6 +19,7 @@ interface Transaction {
     createdAt: string;
     referenceId?: string;
     gatewayOrderId?: string;
+    utrNumber?: string;
 }
 
 export default function ReportsPage() {
@@ -117,6 +118,7 @@ export default function ReportsPage() {
                                 <th className="px-5 py-4 text-right">Amount</th>
                                 <th className="px-5 py-4 text-right">Net Amount</th>
                                 <th className="px-5 py-4 text-center">Status</th>
+                                <th className="px-5 py-4 text-center">UTR No.</th>
                                 <th className="px-5 py-4">Reference / Order ID</th>
                             </tr>
                         </thead>
@@ -169,6 +171,9 @@ export default function ReportsPage() {
                                         </td>
                                         <td className="px-5 py-4 flex justify-center">
                                             <StatusBadge status={tx.status} />
+                                        </td>
+                                        <td className="px-5 py-4 text-center font-mono text-xs text-muted-foreground">
+                                            {tx.utrNumber || "-"}
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="text-xs font-mono text-muted-foreground">

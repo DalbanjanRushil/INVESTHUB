@@ -41,6 +41,7 @@ export interface ITransaction extends Document {
     // Internal References
     referenceId?: mongoose.Types.ObjectId; // ID of Deposit, Withdrawal, etc.
     description?: string;
+    utrNumber?: string;
 
     // Audit & Meta
     riskFlag: RiskFlag;
@@ -100,6 +101,10 @@ const TransactionSchema = new Schema<ITransaction>(
         },
         description: {
             type: String,
+        },
+        utrNumber: {
+            type: String,
+            index: true,
         },
         riskFlag: {
             type: String,
