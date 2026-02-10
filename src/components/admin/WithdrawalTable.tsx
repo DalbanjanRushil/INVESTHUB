@@ -25,7 +25,21 @@ export default function WithdrawalTable({ data }: Props) {
     const [processingId, setProcessingId] = useState<string | null>(null);
 
     const handleAction = async (id: string, action: "APPROVE" | "REJECT") => {
-        if (!window.confirm(`Are you sure you want to ${action} this request?`)) return;
+        let utrNumber = undefined;
+
+        if (action === "APPROVE") {
+            const input = window.prompt("Enter the 16-digit UTR Number for Approval:");
+            if (input === null) return; // Cancelled
+
+            const cleanInput = input.trim();
+            if (cleanInput.length !== 16) {
+                toast.error("Invalid UTR Number. Must be exactly 16 characters.");
+                return;
+            }
+            utrNumber = cleanInput;
+        } else {
+            if (!window.confirm(`Are you sure you want to ${action} this request?`)) return;
+        }
 
         setProcessingId(id);
 
@@ -33,7 +47,11 @@ export default function WithdrawalTable({ data }: Props) {
             const res = await fetch("/api/admin/withdraw/manage", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ withdrawalId: id, action }),
+                body: JSON.stringify({
+                    withdrawalId: id,
+                    action,
+                    utrNumber
+                }),
             });
 
             if (!res.ok) {

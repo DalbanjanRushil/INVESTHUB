@@ -15,6 +15,7 @@ const actionSchema = z.object({
     withdrawalId: z.string(),
     action: z.enum(["APPROVE", "REJECT"]),
     remark: z.string().optional(),
+    utrNumber: z.string().optional(),
 });
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,14 @@ export async function POST(req: Request) {
 
         const body = await req.json();
         const { withdrawalId, action, remark } = actionSchema.parse(body);
+
+        // Validation for UTR Number on Approval
+        let utrNumber = body.utrNumber;
+        if (action === "APPROVE") {
+            if (!utrNumber || utrNumber.length !== 16) {
+                return NextResponse.json({ error: "A valid 16-digit UTR Number is required for approval." }, { status: 400 });
+            }
+        }
 
         await connectToDatabase();
 
@@ -59,6 +68,7 @@ export async function POST(req: Request) {
                 // Update Withdrawal Record
                 withdrawal.status = WithdrawalStatus.APPROVED;
                 withdrawal.adminRemark = remark || "Approved by Admin";
+                withdrawal.utrNumber = utrNumber;
                 withdrawal.processedAt = new Date();
                 await withdrawal.save();
 

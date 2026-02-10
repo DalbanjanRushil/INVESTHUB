@@ -11,6 +11,7 @@ export interface IWithdrawal extends Document {
     amount: number;
     status: WithdrawalStatus;
     adminRemark?: string;
+    utrNumber?: string;
     processedAt?: Date;
     createdAt: Date;
     updatedAt: Date;
@@ -34,6 +35,10 @@ const WithdrawalSchema = new Schema<IWithdrawal>(
             default: WithdrawalStatus.PENDING,
         },
         adminRemark: {
+            type: String,
+            trim: true,
+        },
+        utrNumber: {
             type: String,
             trim: true,
         },
