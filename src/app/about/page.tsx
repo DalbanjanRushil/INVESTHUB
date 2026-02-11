@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Users, Target, Shield, Globe } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 export default function AboutPage() {
     return (
@@ -14,7 +15,10 @@ export default function AboutPage() {
                         </div>
                         <span className="text-sm font-medium text-slate-400 group-hover:text-white transition-colors">Back to Home</span>
                     </Link>
-                    <span className="text-xl font-bold tracking-tight text-white">InvestHub</span>
+                    <Link href="/" className="flex items-center gap-2">
+                        <Logo size="sm" />
+                        <span className="text-xl font-bold tracking-tight text-white">InvestHub</span>
+                    </Link>
                 </div>
             </nav>
 

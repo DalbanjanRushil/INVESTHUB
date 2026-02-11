@@ -26,6 +26,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import NotificationBell from "./NotificationBell";
 import { ThemeToggle } from "../ui/theme-toggle";
+import { Logo } from "../ui/Logo";
 
 export default function SidebarLayout({ children }: { children: React.ReactNode }) {
     const { data: session } = useSession();
@@ -123,14 +124,16 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
 
     const navItems = session.user.role === "ADMIN" ? adminNavItems : userNavItems;
 
+    const dashboardHome = session?.user?.role === "ADMIN" ? "/admin/dashboard" : "/dashboard";
+
     return (
         <div className="min-h-screen bg-background flex font-sans">
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-md border-b border-border z-50 flex items-center justify-between px-4">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/20">IH</div>
+                <Link href={dashboardHome} className="flex items-center gap-2">
+                    <Logo size="sm" />
                     <span className="font-bold text-lg tracking-tight text-foreground">InvestHub</span>
-                </div>
+                </Link>
                 <button onClick={() => setIsMobileOpen(!isMobileOpen)} className="text-foreground">
                     {isMobileOpen ? <X /> : <Menu />}
                 </button>
@@ -145,16 +148,16 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
                     isCollapsed ? "lg:w-[80px]" : "lg:w-[240px]"
                 )}>
                 {/* Logo Area */}
-                <div className="h-20 flex items-center px-6 border-b border-border/50">
-                    <div className="w-10 h-10 min-w-[40px] rounded-xl bg-gradient-to-tr from-accent-primary to-accent-secondary flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-accent-primary/20 mr-3 group-hover:scale-110 transition-transform">
-                        IH
-                    </div>
-                    <div className={cn("transition-opacity duration-300", isCollapsed ? "opacity-0 hidden" : "opacity-100 block")}>
-                        <h1 className="font-bold text-lg leading-tight tracking-tight text-foreground">InvestHub</h1>
-                        <p className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">
-                            {session.user.role === 'ADMIN' ? 'Admin Console' : 'Wealth Portal'}
-                        </p>
-                    </div>
+                <div className="h-20 border-b border-border/50 flex items-center">
+                    <Link href={dashboardHome} className="w-full h-full flex items-center px-6">
+                        <Logo size="md" className={cn("mr-3 transition-transform group-hover:scale-110", isCollapsed ? "mx-auto mr-0" : "")} />
+                        <div className={cn("transition-opacity duration-300", isCollapsed ? "opacity-0 hidden" : "opacity-100 block")}>
+                            <h1 className="font-bold text-lg leading-tight tracking-tight text-foreground">InvestHub</h1>
+                            <p className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase">
+                                {session.user.role === 'ADMIN' ? 'Admin Console' : 'Wealth Portal'}
+                            </p>
+                        </div>
+                    </Link>
                 </div>
 
                 {/* User Profile Card - Premium Spec */}

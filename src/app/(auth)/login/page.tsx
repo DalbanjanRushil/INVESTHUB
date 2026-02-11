@@ -5,6 +5,7 @@ import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ArrowLeft, Mail, Lock, ChevronRight } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -61,7 +62,10 @@ export default function LoginPage() {
                         </div>
                         <span className="text-xs md:text-sm font-medium text-slate-400 group-hover:text-white transition-colors">Back to Home</span>
                     </Link>
-                    <span className="text-lg md:text-xl font-bold tracking-tight text-white">InvestHub</span>
+                    <Link href="/" className="flex items-center gap-2">
+                        <Logo size="sm" />
+                        <span className="text-lg md:text-xl font-bold tracking-tight text-white">InvestHub</span>
+                    </Link>
                 </div>
             </nav>
 
@@ -72,8 +76,8 @@ export default function LoginPage() {
 
                 <div className="w-full max-w-[420px] bg-[#1E293B]/90 backdrop-blur-2xl border border-white/10 rounded-[30px] p-6 md:p-8 shadow-2xl relative z-10 mx-auto">
                     <div className="text-center mb-6">
-                        <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/20 shadow-lg shadow-emerald-500/10">
-                            <span className="text-lg font-bold text-emerald-500">IH</span>
+                        <div className="flex justify-center mb-4">
+                            <Logo size="lg" />
                         </div>
                         <h1 className="text-2xl font-bold tracking-tight text-white">Welcome Back</h1>
                         <p className="text-slate-400 text-xs mt-1">Sign in to your InvestHub account</p>

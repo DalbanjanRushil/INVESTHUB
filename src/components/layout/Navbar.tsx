@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import NotificationBell from "./NotificationBell";
 import { motion } from "framer-motion";
 import { LogOut, User, LayoutDashboard, Shield } from "lucide-react";
+import { Logo } from "../ui/Logo";
 
 export default function Navbar() {
     const { data: session } = useSession();
@@ -18,14 +19,8 @@ export default function Navbar() {
             <div className="container mx-auto px-4 h-18 flex items-center justify-between">
                 {/* Logo - Hidden on Dashboard (Duplicate prevention) */}
                 {!isDashboard ? (
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <div className="size-10 rounded-xl bg-gradient-to-br from-primary to-accent-secondary flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 group-hover:scale-105 transition-transform duration-300">
-                            <span className="font-bold text-lg">IH</span>
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="font-bold text-foreground leading-tight">InvestHub</span>
-                            <span className="text-[10px] text-muted-foreground font-medium tracking-wide uppercase">Wealth Management</span>
-                        </div>
+                    <Link href="/" className="flex items-center gap-3 group group-hover:opacity-90 transition-opacity">
+                        <Logo showText />
                     </Link>
                 ) : (
                     <div /> // Spacer

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, Mail, MessageSquare, MapPin, Send, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 import { useState } from "react";
 
 export default function ContactPage() {
@@ -60,7 +61,10 @@ export default function ContactPage() {
                         </div>
                         <span className="text-sm font-medium text-slate-400 group-hover:text-white transition-colors">Back to Home</span>
                     </Link>
-                    <span className="text-xl font-bold tracking-tight text-white">InvestHub</span>
+                    <Link href="/" className="flex items-center gap-2">
+                        <Logo size="sm" />
+                        <span className="text-xl font-bold tracking-tight text-white">InvestHub</span>
+                    </Link>
                 </div>
             </nav>
 
@@ -186,10 +190,10 @@ export default function ContactPage() {
                                     type="submit"
                                     disabled={status === "loading" || status === "success"}
                                     className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2 ${status === "success"
-                                            ? "bg-green-500 hover:bg-green-600 cursor-default"
-                                            : status === "error"
-                                                ? "bg-red-500 hover:bg-red-600"
-                                                : "bg-emerald-500 hover:bg-emerald-600"
+                                        ? "bg-green-500 hover:bg-green-600 cursor-default"
+                                        : status === "error"
+                                            ? "bg-red-500 hover:bg-red-600"
+                                            : "bg-emerald-500 hover:bg-emerald-600"
                                         }`}
                                 >
                                     {status === "loading" ? (

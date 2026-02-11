@@ -4,6 +4,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Mail, Loader2, CheckCircle } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
@@ -46,7 +47,10 @@ export default function ForgotPasswordPage() {
                         </div>
                         <span className="text-sm font-medium text-slate-400 group-hover:text-white transition-colors">Back to Home</span>
                     </Link>
-                    <span className="text-xl font-bold tracking-tight text-white">InvestHub</span>
+                    <Link href="/" className="flex items-center gap-2">
+                        <Logo size="sm" />
+                        <span className="text-xl font-bold tracking-tight text-white">InvestHub</span>
+                    </Link>
                 </div>
             </nav>
 

@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ArrowLeft, User, Mail, Lock, Gift, CheckCircle, X, Sparkles, ChevronRight } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 import { motion, AnimatePresence } from "framer-motion";
 
 function RegisterContent() {
@@ -97,7 +98,10 @@ function RegisterContent() {
                         </div>
                         <span className="text-xs md:text-sm font-medium text-slate-400 group-hover:text-white transition-colors">Back to Home</span>
                     </Link>
-                    <span className="text-lg md:text-xl font-bold tracking-tight text-white">InvestHub</span>
+                    <Link href="/" className="flex items-center gap-2">
+                        <Logo size="sm" />
+                        <span className="text-lg md:text-xl font-bold tracking-tight text-white">InvestHub</span>
+                    </Link>
                 </div>
             </nav>
 

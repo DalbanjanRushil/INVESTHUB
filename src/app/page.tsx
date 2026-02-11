@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, BarChart2, ShieldCheck, TrendingUp, Lock, Zap } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 export default function Home() {
   return (
@@ -11,9 +12,7 @@ export default function Home() {
 
           {/* Brand (Left) */}
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <BarChart2 className="text-white w-6 h-6" />
-            </div>
+            <Logo size="md" />
             <span className="text-xl font-bold tracking-tight text-white">InvestHub</span>
           </div>
 
@@ -166,9 +165,7 @@ export default function Home() {
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent"></div>
         <div className="container mx-auto px-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-8">
-            <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <BarChart2 className="text-emerald-500 w-5 h-5" />
-            </div>
+            <Logo size="sm" />
             <span className="text-lg font-bold text-white">InvestHub</span>
           </div>
           <p className="text-slate-400 text-sm mb-8 max-w-md mx-auto">
