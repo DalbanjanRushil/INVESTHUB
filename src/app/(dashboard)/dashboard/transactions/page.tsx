@@ -7,6 +7,7 @@ import { ArrowUpRight, ArrowDownRight, Clock, CheckCircle, AlertCircle, Filter, 
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import mongoose from "mongoose";
+import TransactionControls from "@/components/dashboard/TransactionControls";
 
 export const dynamic = "force-dynamic";
 
@@ -45,14 +46,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                     <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">Transaction History</h1>
                     <p className="text-muted-foreground">View and export your complete financial ledger.</p>
                 </div>
-                <div className="flex gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-secondary border border-border text-muted-foreground rounded-xl text-sm font-medium hover:bg-secondary/80 hover:text-foreground transition-all cursor-pointer">
-                        <Filter className="w-4 h-4" /> Filter
-                    </button>
-                    <button className="flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_20px_rgba(16,185,129,0.5)] cursor-pointer">
-                        <Download className="w-4 h-4" /> Export CSV
-                    </button>
-                </div>
+                <TransactionControls />
             </div>
 
             <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-lg flex-1 flex flex-col">
@@ -168,6 +162,6 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

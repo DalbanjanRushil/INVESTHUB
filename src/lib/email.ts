@@ -14,9 +14,15 @@ export interface EmailOptions {
     subject: string;
     text?: string;
     html?: string;
+    attachments?: Array<{
+        filename: string;
+        content?: string | Buffer;
+        path?: string;
+        contentType?: string;
+    }>;
 }
 
-export async function sendEmail({ to, subject, text, html }: EmailOptions) {
+export async function sendEmail({ to, subject, text, html, attachments }: EmailOptions) {
     const from = process.env.EMAIL_USER || 'rushil.ikkasa@gmail.com';
 
     try {
@@ -26,6 +32,7 @@ export async function sendEmail({ to, subject, text, html }: EmailOptions) {
             subject,
             text,
             html,
+            attachments,
         });
 
         console.log(`Message sent: ${info.messageId}`);
