@@ -7,6 +7,7 @@ import { AlertTriangle, Activity, Database, FileText, ArrowRight, Rss, Users, La
 import AdminRealTimeUpdater from "@/components/admin/AdminRealTimeUpdater";
 import ContentFeed from "@/components/dashboard/ContentFeed";
 import UserManagementModal from "@/components/admin/UserManagementModal";
+import AdminManagementModal from "@/components/admin/AdminManagementModal";
 import WithdrawalTable from "@/components/admin/WithdrawalTable";
 
 interface AdminDashboardViewProps {
@@ -26,6 +27,7 @@ interface AdminDashboardViewProps {
 
 export default function AdminDashboardView({ stats }: AdminDashboardViewProps) {
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+    const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
 
     return (
         <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/30">
@@ -223,6 +225,23 @@ export default function AdminDashboardView({ stats }: AdminDashboardViewProps) {
                                 <p className="text-xs text-muted-foreground mt-1">Manage Past Performance</p>
                             </div>
                         </Link>
+
+                        {/* Admin Access Control (New) */}
+                        <div
+                            onClick={() => setIsAdminModalOpen(true)}
+                            className="group p-6 bg-secondary border border-border rounded-md hover:border-primary hover:shadow-lg transition-all flex flex-col justify-between h-[160px] cursor-pointer"
+                        >
+                            <div className="flex justify-between items-start">
+                                <div className="p-2 bg-muted rounded text-primary group-hover:text-primary/80 border border-border group-hover:border-primary/30 transition-colors">
+                                    <Users className="w-6 h-6" /> {/* Using Users icon again or Shield if imported */}
+                                </div>
+                                <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-transform" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-foreground group-hover:text-foreground">Access Control</h3>
+                                <p className="text-xs text-muted-foreground mt-1">Manage Admin Team</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -244,6 +263,7 @@ export default function AdminDashboardView({ stats }: AdminDashboardViewProps) {
             </main>
 
             <UserManagementModal isOpen={isUserModalOpen} onClose={() => setIsUserModalOpen(false)} />
+            <AdminManagementModal isOpen={isAdminModalOpen} onClose={() => setIsAdminModalOpen(false)} />
         </div>
     );
 }

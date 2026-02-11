@@ -31,7 +31,7 @@ export default function DashboardHero({ wallet }: DashboardHeroProps) {
         },
         {
             title: "Total Profit Earned",
-            value: wallet.totalProfit || 0,
+            value: wallet?.totalProfit || 0,
             icon: TrendingUp,
             change: "+12.5%",
             subtext: "All time return",
