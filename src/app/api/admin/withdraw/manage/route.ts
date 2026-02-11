@@ -63,13 +63,9 @@ export async function POST(req: Request) {
                 const txn = await Transaction.findOne({ referenceId: withdrawal._id, type: TransactionType.WITHDRAWAL });
 
                 // If using LedgerService.approveWithdrawal (which we customized for this):
-                await LedgerService.approveWithdrawal(withdrawalId, session.user.id, txn ? txn._id.toString() : "");
+                await LedgerService.approveWithdrawal(withdrawalId, session.user.id, txn ? txn._id.toString() : "", utrNumber);
 
-                // Update Transaction with UTR
-                if (txn) {
-                    txn.utrNumber = utrNumber;
-                    await txn.save();
-                }
+
 
                 // Update Withdrawal Record
                 withdrawal.status = WithdrawalStatus.APPROVED;

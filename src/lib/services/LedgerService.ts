@@ -283,7 +283,7 @@ export class LedgerService {
     /**
      * Approve Withdrawal: Locked Funds -> Admin Bank (Real Payout)
      */
-    static async approveWithdrawal(withdrawalId: string, adminId: string, transactionId: string) {
+    static async approveWithdrawal(withdrawalId: string, adminId: string, transactionId: string, utrNumber?: string) {
         // We need to fetch the original transaction to link it, or just create a new one?
         // Usually, 'Approve' updates the original Transaction status to SUCCESS and adds a new Ledger Entry (Locked -> Out).
         // Or we create a *new* Transaction "WITHDRAWAL_EXECUTED" and link it.
@@ -330,8 +330,11 @@ export class LedgerService {
             await LedgerEntry.insertMany(entries, { session });
             await this.updateWallets(entries, session);
 
-            // Update Transaction Status
+            // Update Transaction Status & UTR
             txn.status = TransactionStatus.SUCCESS;
+            if (utrNumber) {
+                txn.utrNumber = utrNumber;
+            }
             txn.markModified('status'); // Ensure save
             await txn.save({ session });
 
