@@ -6,7 +6,7 @@ import connectToDatabase from "@/lib/db";
 import Withdrawal, { WithdrawalStatus } from "@/models/Withdrawal";
 import Wallet from "@/models/Wallet";
 import Notification from "@/models/Notification";
-import { UserRole } from "@/models/User";
+import User, { UserRole } from "@/models/User";
 import { z } from "zod";
 import { LedgerService } from "@/lib/services/LedgerService";
 import Transaction, { TransactionType, TransactionStatus } from "@/models/Transaction"; // Needed for ref lookup
@@ -130,6 +130,56 @@ export async function POST(req: Request) {
             }).catch(e => console.error("Socket emit fetch failed", e));
         } catch (e) {
             console.error("Socket Emit Error", e);
+        }
+
+        // 6. Send Email Notification
+        try {
+            const user = await User.findById(withdrawal.userId).select("email name");
+            if (user && user.email) {
+                const { sendEmail } = await import("@/lib/email");
+                const { generateEmailHtml, generateTableHtml } = await import("@/lib/email-templates");
+
+                const isApproved = action === "APPROVE";
+                const date = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
+
+                let contentHtml = "";
+                let subject = "";
+
+                if (isApproved) {
+                    subject = "Withdrawal Approved - InvestHub";
+                    const tableHtml = generateTableHtml([
+                        { label: 'Amount', value: `₹${withdrawal.amount.toLocaleString('en-IN')}` },
+                        { label: 'UTR Number', value: utrNumber || "N/A" },
+                        { label: 'Status', value: '<span style="color: #059669; font-weight: bold;">APPROVED</span>' },
+                        { label: 'Processed On', value: date }
+                    ]);
+                    contentHtml = `<p style="margin-bottom: 24px;">We’re pleased to inform you that your withdrawal request has been approved, and the amount has been successfully credited to your bank account.</p>${tableHtml}`;
+                } else {
+                    subject = "Withdrawal Request Update";
+                    const tableHtml = generateTableHtml([
+                        { label: 'Amount', value: `₹${withdrawal.amount.toLocaleString('en-IN')}` },
+                        { label: 'Status', value: '<span style="color: #dc2626; font-weight: bold;">REJECTED</span>' },
+                        { label: 'Reason', value: remark || "Administrative Decision" },
+                        { label: 'Date', value: date }
+                    ]);
+                    contentHtml = `<p style="margin-bottom: 24px;">We regret to inform you that your withdrawal request has been declined. The amount has been refunded to your wallet/investment balance.</p>${tableHtml}`;
+                }
+
+                const html = generateEmailHtml(
+                    user.name || "Investor",
+                    isApproved ? "Withdrawal Successful" : "Withdrawal Rejected",
+                    contentHtml
+                );
+
+                await sendEmail({
+                    to: user.email,
+                    subject: subject,
+                    html: html
+                });
+            }
+        } catch (emailError) {
+            console.error("Failed to send withdrawal email notification:", emailError);
+            // Non-blocking error
         }
 
         return NextResponse.json(

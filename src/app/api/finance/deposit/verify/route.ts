@@ -182,6 +182,34 @@ export async function POST(req: Request) {
             }).catch(e => console.error(e));
         } catch (e) { }
 
+        // F. Send Email Notification
+        const { sendEmail } = await import("@/lib/email");
+        const { generateEmailHtml, generateTableHtml } = await import("@/lib/email-templates");
+
+        if (session.user.email) {
+            const date = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
+
+            const tableHtml = generateTableHtml([
+                { label: 'Amount', value: `₹${amount.toLocaleString('en-IN')}` },
+                { label: 'Plan', value: plan },
+                { label: 'Transaction ID', value: razorpay_payment_id },
+                { label: 'Status', value: '<span style="color: #059669; font-weight: bold;">SUCCESS</span>' },
+                { label: 'Date', value: date }
+            ]);
+
+            const html = generateEmailHtml(
+                session.user.name || "Investor",
+                "Deposit Confirmation",
+                `<p style="margin-bottom: 24px;">We are pleased to inform you that your deposit of <strong>₹${amount.toLocaleString('en-IN')}</strong> has been successfully processed and credited to your account.</p>${tableHtml}`
+            );
+
+            await sendEmail({
+                to: session.user.email,
+                subject: "Deposit Successful - InvestHub",
+                html: html
+            }).catch(console.error);
+        }
+
         return NextResponse.json({ message: "Verify Success", success: true }, { status: 200 });
 
     } catch (error: any) {

@@ -130,6 +130,33 @@ export async function POST(req: Request) {
                 console.error("Socket Emit Error", e);
             }
 
+            // 5. Send Email Notification
+            const { sendEmail } = await import("@/lib/email");
+            const { generateEmailHtml, generateTableHtml } = await import("@/lib/email-templates");
+
+            if (session.user.email) {
+                const date = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
+
+                const tableHtml = generateTableHtml([
+                    { label: 'Requested Amount', value: `₹${amount.toLocaleString('en-IN')}` },
+                    { label: 'Reference ID', value: withdrawal._id.toString() },
+                    { label: 'Status', value: '<span style="color: #d97706; font-weight: bold;">PENDING APPROVAL</span>' },
+                    { label: 'Date', value: date }
+                ]);
+
+                const html = generateEmailHtml(
+                    session.user.name || "Investor",
+                    "Withdrawal Request Received",
+                    `<p style="margin-bottom: 24px;">We have received your withdrawal request of <strong>₹${amount.toLocaleString('en-IN')}</strong>. Our team will review it shortly. You will receive another notification once the request is processed.</p>${tableHtml}`
+                );
+
+                await sendEmail({
+                    to: session.user.email,
+                    subject: "Withdrawal Request Received - InvestHub",
+                    html: html
+                }).catch(console.error);
+            }
+
             return NextResponse.json(
                 { message: "Withdrawal request created successfully", withdrawalId: withdrawal._id },
                 { status: 200 }
