@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import InvestmentStrategy from "@/models/InvestmentStrategy";
 
+import Wallet from "@/models/Wallet";
+
 export const dynamic = "force-dynamic";
 
 export async function GET() {
@@ -15,7 +17,23 @@ export async function GET() {
 
         await dbConnect();
 
-        const strategies = await InvestmentStrategy.find({ isActive: true }).sort({ createdAt: -1 }).lean();
+        const [strategies, walletStats] = await Promise.all([
+            InvestmentStrategy.find({ isActive: true }).sort({ createdAt: -1 }).lean(),
+            Wallet.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        totalPrincipal: { $sum: "$principal" },
+                        totalProfit: { $sum: "$profit" },
+                        totalReferral: { $sum: "$referral" }
+                    }
+                }
+            ])
+        ]);
+
+        const totalUserFunds = (walletStats[0]?.totalPrincipal || 0) +
+            (walletStats[0]?.totalProfit || 0) +
+            (walletStats[0]?.totalReferral || 0);
 
         // 1. Determine if the user is an admin
         const isAdmin = session.user.role === "ADMIN";
@@ -23,7 +41,7 @@ export async function GET() {
         // 2. Transform strategies based on role (User View Logic)
         const transformedStrategies = strategies.map((strategy: any) => {
             const { internalROI, ...rest } = strategy;
-            
+
             // If user is admin, they see everything including internalROI
             if (isAdmin) {
                 return strategy;
@@ -39,9 +57,11 @@ export async function GET() {
 
         // 3. Calculate Global Metrics for Header
         const totalDeployed = strategies.reduce((sum, s) => sum + s.totalCapitalDeployed, 0);
+        const availableLiquid = totalUserFunds - totalDeployed;
+
         const activeCount = strategies.filter(s => s.status === "ACTIVE").length;
-        const avgConservativeROI = strategies.length > 0 
-            ? strategies.reduce((sum, s) => sum + s.conservativeROI, 0) / strategies.length 
+        const avgConservativeROI = strategies.length > 0
+            ? strategies.reduce((sum, s) => sum + s.conservativeROI, 0) / strategies.length
             : 0;
 
         return NextResponse.json({
@@ -50,6 +70,7 @@ export async function GET() {
                 strategies: transformedStrategies,
                 metrics: {
                     totalDeployed,
+                    availableLiquid: Number(availableLiquid.toFixed(2)),
                     activeCount,
                     avgConservativeROI: Number(avgConservativeROI.toFixed(2)),
                     riskDistribution: calculateRiskDistribution(strategies),

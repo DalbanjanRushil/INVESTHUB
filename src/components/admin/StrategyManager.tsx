@@ -30,12 +30,19 @@ interface Strategy {
     roi?: number; // Conservative ROI for users
     status: string;
     allocation: any[];
+    tenureAllocation?: {
+        flexi: number;
+        months3: number;
+        months6: number;
+        months12: number;
+    };
 }
 
 interface StrategyManagerProps {
     strategies: Strategy[];
     metrics: {
         totalDeployed: number;
+        availableLiquid?: number;
         activeCount: number;
         avgConservativeROI: number;
         riskDistribution: { low: number; medium: number; high: number };
@@ -58,9 +65,15 @@ export default function StrategyManager({ strategies, metrics, isAdmin, onEdit }
                     subtitle="Real-world fund allocation"
                 />
                 <MetricCard
+                    title="Available Liquidity"
+                    value={`₹${(metrics.availableLiquid || 0).toLocaleString('en-IN')}`}
+                    icon={<Zap className="w-5 h-5 text-emerald-500" />}
+                    subtitle="Undeployed capital reserve"
+                />
+                <MetricCard
                     title="Active Strategies"
                     value={(metrics.activeCount || 0).toString()}
-                    icon={<Zap className="w-5 h-5 text-warning" />}
+                    icon={<PieChart className="w-5 h-5 text-accent-secondary" />}
                     subtitle="Live investment buckets"
                 />
                 <MetricCard
@@ -68,12 +81,6 @@ export default function StrategyManager({ strategies, metrics, isAdmin, onEdit }
                     value={`${metrics.avgConservativeROI || 0}%`}
                     icon={<TrendingUp className="w-5 h-5 text-accent-secondary" />}
                     subtitle="Transparent profit targets"
-                />
-                <MetricCard
-                    title="Risk Exposure Index"
-                    value={metrics.riskDistribution?.medium > 50 ? "Balanced" : "Dynamic"}
-                    icon={<ShieldCheck className="w-5 h-5 text-primary" />}
-                    subtitle={`${metrics.riskDistribution?.low || 0}% Low | ${metrics.riskDistribution?.medium || 0}% Med`}
                 />
             </div>
 
@@ -189,7 +196,7 @@ function StrategyCard({ strategy, idx, isAdmin, totalCapital, onEdit }: { strate
             </div>
 
             {/* Metrics Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className={`grid grid-cols-2 gap-4 ${strategy.tenureAllocation ? 'mb-4' : 'mb-6'}`}>
                 <div className="p-3 rounded-xl bg-muted border border-border">
                     <div className="text-[10px] text-muted-foreground uppercase font-bold mb-1 flex items-center gap-1">
                         <Briefcase className="w-3 h-3" /> Invested
@@ -203,6 +210,33 @@ function StrategyCard({ strategy, idx, isAdmin, totalCapital, onEdit }: { strate
                     <div className="text-sm font-bold text-foreground">{strategy.lockInPeriod} Months</div>
                 </div>
             </div>
+
+            {/* Tenure Allocation Breakdown */}
+            {strategy.tenureAllocation && (
+                <div className="mb-6 bg-secondary/30 rounded-xl p-3 border border-border/50">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2 flex items-center gap-1">
+                        <PieChart className="w-3 h-3" /> Fund Allocation Breakdown
+                    </p>
+                    <div className="grid grid-cols-4 gap-2 text-center">
+                        <div>
+                            <div className="text-[9px] text-muted-foreground uppercase">Flexi</div>
+                            <div className="text-xs font-bold">{((strategy.tenureAllocation.flexi || 0) / strategy.totalCapitalDeployed * 100 || 0).toFixed(0)}%</div>
+                        </div>
+                        <div>
+                            <div className="text-[9px] text-muted-foreground uppercase">3M</div>
+                            <div className="text-xs font-bold">{((strategy.tenureAllocation.months3 || 0) / strategy.totalCapitalDeployed * 100 || 0).toFixed(0)}%</div>
+                        </div>
+                        <div>
+                            <div className="text-[9px] text-muted-foreground uppercase">6M</div>
+                            <div className="text-xs font-bold">{((strategy.tenureAllocation.months6 || 0) / strategy.totalCapitalDeployed * 100 || 0).toFixed(0)}%</div>
+                        </div>
+                        <div>
+                            <div className="text-[9px] text-muted-foreground uppercase">12M</div>
+                            <div className="text-xs font-bold">{((strategy.tenureAllocation.months12 || 0) / strategy.totalCapitalDeployed * 100 || 0).toFixed(0)}%</div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ROI Logic (Disclosure Rule) */}
             <div className="relative p-4 rounded-xl bg-accent-primary/5 border border-accent-primary/10 mb-6 group-hover:bg-accent-primary/10 transition-colors">

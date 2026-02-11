@@ -13,6 +13,8 @@ interface StrategyEntryFormProps {
 
 export default function StrategyEntryForm({ isOpen, onClose, onSuccess, initialData }: StrategyEntryFormProps) {
     const [loading, setLoading] = useState(false);
+    const [availableLiquid, setAvailableLiquid] = useState<number | null>(null);
+
     const [formData, setFormData] = useState({
         name: initialData?.name || "",
         description: initialData?.description || "",
@@ -26,7 +28,34 @@ export default function StrategyEntryForm({ isOpen, onClose, onSuccess, initialD
         disclosureFactor: initialData?.disclosureFactor || 0.5,
         status: initialData?.status || "ACTIVE",
         allocation: initialData?.allocation || [{ asset: "", percentage: 100, color: "#10b981" }],
+        tenureAllocation: initialData?.tenureAllocation || { flexi: 0, months3: 0, months6: 0, months12: 0 },
     });
+
+    React.useEffect(() => {
+        fetchLiquidity();
+    }, []);
+
+    const fetchLiquidity = async () => {
+        try {
+            const res = await fetch("/api/strategy");
+            const json = await res.json();
+            if (json.success) {
+                setAvailableLiquid(json.data.metrics.availableLiquid);
+            }
+        } catch (error) {
+            console.error("Failed to fetch liquidity stats");
+        }
+    };
+
+    const handleTenureChange = (key: string, value: number) => {
+        const newTenure = { ...formData.tenureAllocation, [key]: value };
+        const newTotal = Object.values(newTenure).reduce((a: any, b: any) => a + b, 0);
+        setFormData({
+            ...formData,
+            tenureAllocation: newTenure,
+            totalCapitalDeployed: newTotal
+        });
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -224,39 +253,102 @@ export default function StrategyEntryForm({ isOpen, onClose, onSuccess, initialD
                             </div>
                         </div>
 
-                        {/* Deployment Details */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Capital Deployed (₹)</label>
-                                <input
-                                    type="number"
-                                    required
-                                    value={formData.totalCapitalDeployed}
-                                    onChange={e => setFormData({ ...formData, totalCapitalDeployed: Number(e.target.value) })}
-                                    className="w-full px-4 py-3 rounded-xl bg-muted/30 border border-border text-foreground focus:border-emerald-500/50 outline-none transition-all"
-                                />
+                        {/* Deployment Details & Tenure Allocation */}
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                                    <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Capital Allocation & Lock-in
+                                </h3>
+                                <div className="text-xs font-mono bg-emerald-500/10 text-emerald-600 px-3 py-1 rounded-lg border border-emerald-500/20">
+                                    Available Liquid Funds: <span className="font-bold">₹{availableLiquid?.toLocaleString() || "..."}</span>
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Lock-in (Months)</label>
-                                <input
-                                    type="number"
-                                    required
-                                    value={formData.lockInPeriod}
-                                    onChange={e => setFormData({ ...formData, lockInPeriod: Number(e.target.value) })}
-                                    className="w-full px-4 py-3 rounded-xl bg-muted/30 border border-border text-foreground focus:border-emerald-500/50 outline-none transition-all"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Risk Level</label>
-                                <select
-                                    value={formData.riskLevel}
-                                    onChange={e => setFormData({ ...formData, riskLevel: e.target.value as any })}
-                                    className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground focus:border-emerald-500/50 outline-none transition-all appearance-none cursor-pointer"
-                                >
-                                    <option value="LOW" className="bg-background text-foreground">Low Risk</option>
-                                    <option value="MEDIUM" className="bg-background text-foreground">Medium Risk</option>
-                                    <option value="HIGH" className="bg-background text-foreground">High Risk</option>
-                                </select>
+
+                            <div className="p-6 rounded-2xl bg-muted/20 border border-border space-y-6">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Flexi (Liquid)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={formData.tenureAllocation.flexi}
+                                            onChange={e => handleTenureChange('flexi', Number(e.target.value))}
+                                            className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground focus:border-emerald-500/50 outline-none transition-all text-sm"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">3 Months</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={formData.tenureAllocation.months3}
+                                            onChange={e => handleTenureChange('months3', Number(e.target.value))}
+                                            className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground focus:border-emerald-500/50 outline-none transition-all text-sm"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">6 Months</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={formData.tenureAllocation.months6}
+                                            onChange={e => handleTenureChange('months6', Number(e.target.value))}
+                                            className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground focus:border-emerald-500/50 outline-none transition-all text-sm"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">12 Months</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={formData.tenureAllocation.months12}
+                                            onChange={e => handleTenureChange('months12', Number(e.target.value))}
+                                            className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground focus:border-emerald-500/50 outline-none transition-all text-sm"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-border/50 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Capital Deployed (₹)</label>
+                                        <input
+                                            type="number"
+                                            readOnly // Computed field
+                                            value={formData.totalCapitalDeployed}
+                                            className={`w-full px-4 py-3 rounded-xl border font-bold outline-none transition-all ${availableLiquid !== null && formData.totalCapitalDeployed > (initialData ? availableLiquid + initialData.totalCapitalDeployed : availableLiquid)
+                                                ? "bg-rose-500/10 border-rose-500 text-rose-500"
+                                                : "bg-muted/30 border-border text-foreground"
+                                                }`}
+                                        />
+                                        {availableLiquid !== null && formData.totalCapitalDeployed > (initialData ? availableLiquid + initialData.totalCapitalDeployed : availableLiquid) && (
+                                            <p className="text-[10px] text-rose-500 font-bold mt-1">
+                                                Exceeds Available Liquidity! (+₹{(formData.totalCapitalDeployed - (initialData ? availableLiquid + initialData.totalCapitalDeployed : availableLiquid)).toLocaleString()})
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Invest Lock-in (Months)</label>
+                                        <input
+                                            type="number"
+                                            required
+                                            value={formData.lockInPeriod}
+                                            onChange={e => setFormData({ ...formData, lockInPeriod: Number(e.target.value) })}
+                                            className="w-full px-4 py-3 rounded-xl bg-muted/30 border border-border text-foreground focus:border-emerald-500/50 outline-none transition-all"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Risk Level</label>
+                                        <select
+                                            value={formData.riskLevel}
+                                            onChange={e => setFormData({ ...formData, riskLevel: e.target.value as any })}
+                                            className="w-full px-4 py-3 rounded-xl bg-background border border-border text-foreground focus:border-emerald-500/50 outline-none transition-all appearance-none cursor-pointer"
+                                        >
+                                            <option value="LOW" className="bg-background text-foreground">Low Risk</option>
+                                            <option value="MEDIUM" className="bg-background text-foreground">Medium Risk</option>
+                                            <option value="HIGH" className="bg-background text-foreground">High Risk</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

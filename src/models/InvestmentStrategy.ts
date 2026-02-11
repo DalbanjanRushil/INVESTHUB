@@ -23,6 +23,12 @@ export interface IInvestmentStrategy extends Document {
     conservativeROI: number; // Displayed ROI (e.g., 12)
     disclosureFactor: number; // default 0.5
     allocation: IStrategyAllocation[];
+    tenureAllocation: {
+        flexi: number;
+        months3: number;
+        months6: number;
+        months12: number;
+    };
     history: IStrategyHistory[];
     managerMessage?: string;
     status: "ACTIVE" | "CLOSED" | "EXITED";
@@ -60,6 +66,12 @@ const InvestmentStrategySchema = new Schema<IInvestmentStrategy>(
                 color: { type: String, default: "#000000" },
             },
         ],
+        tenureAllocation: {
+            flexi: { type: Number, default: 0 },
+            months3: { type: Number, default: 0 },
+            months6: { type: Number, default: 0 },
+            months12: { type: Number, default: 0 },
+        },
         history: [
             {
                 date: { type: String, required: true },

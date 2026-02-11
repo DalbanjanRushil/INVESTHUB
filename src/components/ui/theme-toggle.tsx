@@ -50,7 +50,7 @@ export function ThemeToggle({
 
             {!isCollapsed && (
                 <span className="text-sm font-medium text-muted-foreground transition-colors group-hover:text-foreground">
-                    {isDark ? "Dark Mode" : "Light Mode"}
+                    {isDark ? "Switch to Light" : "Switch to Dark"}
                 </span>
             )}
         </button>
