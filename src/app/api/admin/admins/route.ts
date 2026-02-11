@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import User, { UserRole } from "@/models/User";
 import bcrypt from "bcryptjs";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET() {
     try {
@@ -31,23 +33,11 @@ export async function POST(req: Request) {
         const existingUser = await User.findOne({ email });
 
         if (existingUser) {
-            // Option: Could upgrade here, but for now let's say "User already exists" 
-            // to avoid accidentally creating duplicate logic or overwriting without explicit consent logic.
-            // Or we can just check if they are already admin.
             if (existingUser.role === UserRole.ADMIN) {
                 return NextResponse.json({ error: "User is already an Admin." }, { status: 400 });
             }
 
-            // If they are a regular user, we could upgrade them? 
-            // The prompt says "admin can add the new admin". 
-            // Let's assume creating a NEW user primarily, but if email exists as USER, we can upgrade them.
-            // Let's upgrade them for convenience if they exist.
             existingUser.role = UserRole.ADMIN;
-            // If password provided, DO NOT overwrite unless explicit? 
-            // Actually, if we are "adding new admin" and they already have an account, 
-            // maybe we shouldn't change their password.
-            // But if it's a new person, we need initial password.
-
             await existingUser.save();
             return NextResponse.json({ message: "Existing user upgraded to Admin." });
         }
@@ -61,11 +51,45 @@ export async function POST(req: Request) {
             role: UserRole.ADMIN,
             status: "ACTIVE",
             payoutPreference: "COMPOUND",
-            // Generate a random referral code or leave empty/handle in pre-save if exists
             referralCode: `ADMIN${Math.floor(1000 + Math.random() * 9000)}`
         });
 
         return NextResponse.json({ message: "New Admin created successfully." });
+
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function DELETE(req: Request) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session || session.user.role !== UserRole.ADMIN) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        await connectDB();
+        const { adminId } = await req.json();
+
+        if (!adminId) {
+            return NextResponse.json({ error: "Admin ID is required" }, { status: 400 });
+        }
+
+        // Prevent self-removal
+        if (session.user.id === adminId) {
+            return NextResponse.json({ error: "You cannot remove your own admin access." }, { status: 400 });
+        }
+
+        const user = await User.findById(adminId);
+        if (!user) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
+
+        // Downgrade to USER instead of deleting
+        user.role = UserRole.USER;
+        await user.save();
+
+        return NextResponse.json({ message: "Admin privileges revoked successfully." });
 
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

@@ -90,6 +90,29 @@ export default function AdminManagementModal({ isOpen, onClose }: AdminManagemen
         }
     };
 
+    const handleRemoveAdmin = async (adminId: string) => {
+        if (!confirm("Are you sure you want to revoke admin access for this user? They will be downgraded to a regular user.")) return;
+
+        try {
+            const res = await fetch("/api/admin/admins", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ adminId })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                toast.success(data.message || "Admin access revoked");
+                fetchAdmins();
+            } else {
+                toast.error(data.error || "Failed to remove admin");
+            }
+        } catch (error) {
+            toast.error("An error occurred");
+        }
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -207,13 +230,22 @@ export default function AdminManagementModal({ isOpen, onClose }: AdminManagemen
                                                 <p className="text-xs text-muted-foreground">{admin.email}</p>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
-                                                <ShieldCheck className="w-3 h-3" /> SUPER ADMIN
-                                            </span>
-                                            <p className="text-[10px] text-muted-foreground mt-1">
-                                                Since {new Date(admin.createdAt).toLocaleDateString()}
-                                            </p>
+                                        <div className="flex items-center gap-4">
+                                            <div className="text-right">
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
+                                                    <ShieldCheck className="w-3 h-3" /> SUPER ADMIN
+                                                </span>
+                                                <p className="text-[10px] text-muted-foreground mt-1">
+                                                    Since {new Date(admin.createdAt).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => handleRemoveAdmin(admin._id)}
+                                                className="p-2 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                                                title="Revoke Admin Access"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
