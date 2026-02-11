@@ -241,7 +241,7 @@ export default function AdminManagementModal({ isOpen, onClose }: AdminManagemen
                                             </div>
                                             <button
                                                 onClick={() => handleRemoveAdmin(admin._id)}
-                                                className="p-2 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                                                className="p-2 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive hover:text-white transition-all"
                                                 title="Revoke Admin Access"
                                             >
                                                 <X className="w-4 h-4" />

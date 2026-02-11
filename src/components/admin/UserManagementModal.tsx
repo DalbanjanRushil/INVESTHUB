@@ -11,7 +11,7 @@ interface User {
     name: string;
     email: string;
     status: "ACTIVE" | "BLOCKED";
-    joinedAt: string;
+    createdAt: string;
     investedAmount: number;
     walletBalance: number;
 }
@@ -162,7 +162,7 @@ export default function UserManagementModal({ isOpen, onClose }: UserManagementM
                                         <div className="text-right">
                                             <p className="text-[10px] text-muted-foreground uppercase font-bold">Joined</p>
                                             <p className="text-xs text-foreground">
-                                                {new Date(user.joinedAt).toLocaleDateString()}
+                                                {new Date(user.createdAt).toLocaleDateString()}
                                             </p>
                                         </div>
 
