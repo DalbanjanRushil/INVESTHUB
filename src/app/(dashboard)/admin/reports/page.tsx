@@ -27,22 +27,33 @@ export default function ReportsPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [typeFilter, setTypeFilter] = useState("ALL");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const LIMIT = 10;
 
     useEffect(() => {
-        fetchTransactions();
-    }, []);
+        fetchTransactions(currentPage);
+    }, [currentPage]);
 
-    const fetchTransactions = async () => {
+    const fetchTransactions = async (page: number) => {
+        setLoading(true);
         try {
-            const res = await fetch("/api/admin/reports/transactions");
+            const res = await fetch(`/api/admin/reports/transactions?page=${page}&limit=${LIMIT}`);
             const data = await res.json();
             if (data.success) {
                 setTransactions(data.data);
+                setTotalPages(data.pagination.totalPages);
             }
         } catch (error) {
             console.error("Failed to fetch transactions", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 1 && newPage <= totalPages) {
+            setCurrentPage(newPage);
         }
     };
 
@@ -58,26 +69,26 @@ export default function ReportsPage() {
         return matchesSearch && matchesType;
     });
 
-    // Calculate totals for filtering summary
+    // Calculate totals for filtering summary (Note: only for current page now, or we'd need a separate stats API)
     const totalVolume = filteredTransactions.reduce((acc, curr) => acc + curr.amount, 0);
 
     return (
-        <div className="min-h-screen bg-background text-foreground p-6 space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border pb-6">
+        <div className="h-[calc(100vh-80px)] bg-background text-foreground p-6 flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border pb-6 shrink-0">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">Financial Reports</h1>
                     <p className="text-muted-foreground mt-1">Comprehensive ledger of all system transactions.</p>
                 </div>
                 <div className="flex gap-2">
                     <div className="bg-card border border-border px-4 py-2 rounded-md shadow-sm">
-                        <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Report Volume</p>
+                        <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Page Volume</p>
                         <p className="text-lg font-mono font-bold text-foreground">{formatCurrency(totalVolume)}</p>
                     </div>
                 </div>
             </div>
 
             {/* Controls */}
-            <div className="flex flex-col md:flex-row gap-4 items-center bg-card p-4 rounded-lg border border-border shadow-sm">
+            <div className="flex flex-col md:flex-row gap-4 items-center bg-card p-4 rounded-lg border border-border shadow-sm shrink-0">
                 <div className="relative flex-1 w-full md:max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
@@ -106,26 +117,26 @@ export default function ReportsPage() {
                 </div>
             </div>
 
-            {/* Table */}
-            <div className="border border-border rounded-lg overflow-hidden bg-card shadow-sm">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-muted/30 text-muted-foreground font-medium border-b border-border">
+            {/* Table Container - Fixed Height & Scrollable */}
+            <div className="border border-border rounded-lg bg-card shadow-sm flex-1 overflow-hidden flex flex-col">
+                <div className="overflow-auto flex-1 w-full">
+                    <table className="w-full text-sm text-left relative">
+                        <thead className="bg-muted/30 text-muted-foreground font-medium border-b border-border sticky top-0 backdrop-blur-md z-10 whitespace-nowrap">
                             <tr>
-                                <th className="px-5 py-4 w-[180px]">Date & Time</th>
-                                <th className="px-5 py-4 min-w-[200px]">User Details</th>
-                                <th className="px-5 py-4">Type</th>
-                                <th className="px-5 py-4 text-right">Amount</th>
-                                <th className="px-5 py-4 text-right">Net Amount</th>
-                                <th className="px-5 py-4 text-center">Status</th>
-                                <th className="px-5 py-4 text-center">UTR No.</th>
-                                <th className="px-5 py-4">Reference / Order ID</th>
+                                <th className="px-3 py-3 w-[150px]">Date & Time</th>
+                                <th className="px-3 py-3 max-w-[180px]">User Details</th>
+                                <th className="px-3 py-3">Type</th>
+                                <th className="px-3 py-3 text-right">Amount</th>
+                                <th className="px-3 py-3 text-right">Net Amount</th>
+                                <th className="px-3 py-3 text-center">Status</th>
+                                <th className="px-3 py-3 text-center">UTR No.</th>
+                                <th className="px-3 py-3 max-w-[160px]">Ref / Order ID</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={7} className="px-5 py-12 text-center text-muted-foreground">
+                                    <td colSpan={8} className="px-5 py-12 text-center text-muted-foreground">
                                         <div className="flex flex-col items-center justify-center gap-2">
                                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
                                             <p>Loading ledger entries...</p>
@@ -134,54 +145,54 @@ export default function ReportsPage() {
                                 </tr>
                             ) : filteredTransactions.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-5 py-12 text-center text-muted-foreground">
+                                    <td colSpan={8} className="px-5 py-12 text-center text-muted-foreground">
                                         <p>No transactions found matching your criteria.</p>
                                     </td>
                                 </tr>
                             ) : (
                                 filteredTransactions.map((tx) => (
                                     <tr key={tx._id} className="group hover:bg-muted/30 transition-colors">
-                                        <td className="px-5 py-4 whitespace-nowrap text-muted-foreground font-mono text-xs">
+                                        <td className="px-3 py-3 whitespace-nowrap text-muted-foreground font-mono text-xs">
                                             {format(new Date(tx.createdAt), "MMM d, yyyy")}<br />
                                             {format(new Date(tx.createdAt), "HH:mm:ss")}
                                         </td>
-                                        <td className="px-5 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase">
+                                        <td className="px-3 py-3 max-w-[180px]">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[10px] uppercase shrink-0">
                                                     {tx.userId?.name?.substring(0, 2) || "??"}
                                                 </div>
-                                                <div>
-                                                    <div className="font-medium text-foreground">{tx.userId?.name || "Unknown User"}</div>
-                                                    <div className="text-xs text-muted-foreground font-mono">{tx.userId?.email}</div>
+                                                <div className="overflow-hidden">
+                                                    <div className="font-medium text-foreground truncate text-xs" title={tx.userId?.name}>{tx.userId?.name || "Unknown"}</div>
+                                                    <div className="text-[10px] text-muted-foreground font-mono truncate" title={tx.userId?.email}>{tx.userId?.email}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${getTypeStyles(tx.type)} shadow-sm`}>
+                                        <td className="px-3 py-3 whitespace-nowrap">
+                                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] uppercase font-bold border ${getTypeStyles(tx.type)} shadow-sm`}>
                                                 {tx.type.replace("_", " ")}
                                             </span>
                                         </td>
-                                        <td className="px-5 py-4 text-right font-mono font-medium text-muted-foreground">
+                                        <td className="px-3 py-3 text-right font-mono font-medium text-muted-foreground text-xs whitespace-nowrap">
                                             {formatCurrency(tx.amount, tx.currency)}
                                         </td>
-                                        <td className={`px-5 py-4 text-right font-mono font-bold ${["DEPOSIT", "PROFIT", "REFERRAL_BONUS"].includes(tx.type) ? "text-emerald-500" : "text-foreground"
+                                        <td className={`px-3 py-3 text-right font-mono font-bold text-xs whitespace-nowrap ${["DEPOSIT", "PROFIT", "REFERRAL_BONUS"].includes(tx.type) ? "text-emerald-500" : "text-foreground"
                                             }`}>
                                             {["WITHDRAWAL", "DEBIT"].includes(tx.type) ? "-" : "+"}
                                             {formatCurrency(tx.netAmount, tx.currency)}
                                         </td>
-                                        <td className="px-5 py-4 flex justify-center">
+                                        <td className="px-3 py-3 flex justify-center whitespace-nowrap">
                                             <StatusBadge status={tx.status} />
                                         </td>
-                                        <td className="px-5 py-4 text-center font-mono text-xs text-muted-foreground">
+                                        <td className="px-3 py-3 text-center font-mono text-xs text-muted-foreground break-all max-w-[100px]">
                                             {tx.utrNumber || "-"}
                                         </td>
-                                        <td className="px-5 py-4">
-                                            <div className="text-xs font-mono text-muted-foreground">
-                                                <span className="opacity-50">TX:</span> {tx._id.slice(-8).toUpperCase()}
+                                        <td className="px-3 py-3 max-w-[160px]">
+                                            <div className="text-[10px] font-mono text-muted-foreground break-all leading-tight">
+                                                <span className="opacity-50 select-none">ID:</span> {tx._id.slice(-8).toUpperCase()}
                                             </div>
                                             {tx.gatewayOrderId && (
-                                                <div className="text-xs font-mono text-accent-foreground/70 mt-1">
-                                                    <span className="opacity-50">GW:</span> {tx.gatewayOrderId}
+                                                <div className="text-[10px] font-mono text-accent-foreground/70 mt-0.5 break-all leading-tight">
+                                                    <span className="opacity-50 select-none">GW:</span> {tx.gatewayOrderId}
                                                 </div>
                                             )}
                                         </td>
@@ -191,9 +202,25 @@ export default function ReportsPage() {
                         </tbody>
                     </table>
                 </div>
-                <div className="px-5 py-4 border-t border-border bg-muted/10 text-xs text-muted-foreground flex justify-between items-center">
-                    <span>Showing {filteredTransactions.length} transactions</span>
-                    <span>Sorted by Date (Newest First)</span>
+                {/* Pagination Controls */}
+                <div className="px-5 py-3 border-t border-border bg-muted/10 text-xs text-muted-foreground flex justify-between items-center shrink-0">
+                    <span>Page {currentPage} of {totalPages}</span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="px-3 py-1 border border-border rounded hover:bg-muted disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                        >
+                            Previous
+                        </button>
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="px-3 py-1 border border-border rounded hover:bg-muted disabled:opacity-50 disabled:hover:bg-transparent transition-colors"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
