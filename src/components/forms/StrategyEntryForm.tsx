@@ -29,6 +29,7 @@ export default function StrategyEntryForm({ isOpen, onClose, onSuccess, initialD
         status: initialData?.status || "ACTIVE",
         allocation: initialData?.allocation || [{ asset: "", percentage: 100, color: "#10b981" }],
         tenureAllocation: initialData?.tenureAllocation || { flexi: 0, months3: 0, months6: 0, months12: 0 },
+        history: initialData?.history || [],
     });
 
     React.useEffect(() => {
@@ -399,6 +400,72 @@ export default function StrategyEntryForm({ isOpen, onClose, onSuccess, initialD
                                         </button>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* Performance History (Curve Data) */}
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Performance History (Curve Data)
+                            </h3>
+                            <div className="p-4 rounded-2xl bg-muted/20 border border-border space-y-4">
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Month Year (e.g. Jan 2025)"
+                                        id="historyDate"
+                                        className="flex-1 px-4 py-2 rounded-lg bg-background border border-border text-sm text-foreground outline-none"
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="ROI %"
+                                        id="historyRoi"
+                                        className="w-24 px-4 py-2 rounded-lg bg-background border border-border text-sm text-foreground outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const dateInput = document.getElementById('historyDate') as HTMLInputElement;
+                                            const roiInput = document.getElementById('historyRoi') as HTMLInputElement;
+                                            if (dateInput.value && roiInput.value) {
+                                                setFormData({
+                                                    ...formData,
+                                                    history: [...(formData.history || []), { date: dateInput.value, roi: Number(roiInput.value) }]
+                                                });
+                                                dateInput.value = "";
+                                                roiInput.value = "";
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-colors"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+
+                                <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
+                                    {(formData.history || []).map((item: any, idx: number) => (
+                                        <div key={idx} className="flex items-center justify-between p-3 bg-background rounded-xl border border-border">
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-xs font-bold text-muted-foreground uppercase w-24">{item.date}</span>
+                                                <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">+{item.roi}%</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const newHistory = [...formData.history];
+                                                    newHistory.splice(idx, 1);
+                                                    setFormData({ ...formData, history: newHistory });
+                                                }}
+                                                className="text-muted-foreground hover:text-rose-500 transition-colors"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {(!formData.history || formData.history.length === 0) && (
+                                        <p className="text-center text-xs text-muted-foreground py-4">No performance data recorded yet.</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </form>

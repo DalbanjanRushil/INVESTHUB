@@ -15,6 +15,27 @@ export async function POST() {
 
         await dbConnect();
 
+        // Helper to generate realistic-looking history
+        const generateHistory = (targetRoi: number, risk: string) => {
+            const history = [];
+            const now = new Date();
+            let currentRoi = 0;
+            const volatility = risk === "HIGH" ? 2.5 : risk === "MEDIUM" ? 1.5 : 0.8;
+
+            for (let i = 12; i >= 0; i--) {
+                const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                // Random fluctuation: target monthly return +/- volatility
+                const monthlyGrowth = (targetRoi / 12) + (Math.random() * volatility - (volatility / 2));
+                currentRoi = Math.max(0, currentRoi + monthlyGrowth); // Cumulative
+
+                history.push({
+                    date: date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }), // e.g., "Jan 2025"
+                    roi: Number(currentRoi.toFixed(2))
+                });
+            }
+            return history;
+        };
+
         const strategies = [
             {
                 name: "Physical Gold Reserves",
@@ -28,6 +49,8 @@ export async function POST() {
                 conservativeROI: 9,
                 disclosureFactor: 0.5,
                 allocation: [{ asset: "Gold Bullion", percentage: 100, color: "#f59e0b" }],
+                tenureAllocation: { flexi: 450000, months3: 900000, months6: 1350000, months12: 1800000 },
+                history: generateHistory(9, "LOW"),
                 status: "ACTIVE",
                 isActive: true
             },
@@ -43,6 +66,8 @@ export async function POST() {
                 conservativeROI: 12,
                 disclosureFactor: 0.5,
                 allocation: [{ asset: "Commercial", percentage: 60, color: "#3b82f6" }, { asset: "Residential", percentage: 40, color: "#10b981" }],
+                tenureAllocation: { flexi: 1200000, months3: 2400000, months6: 3600000, months12: 4800000 },
+                history: generateHistory(12, "MEDIUM"),
                 status: "ACTIVE",
                 isActive: true
             },
@@ -58,6 +83,8 @@ export async function POST() {
                 conservativeROI: 20,
                 disclosureFactor: 0.44,
                 allocation: [{ asset: "Equity", percentage: 100, color: "#ec4899" }],
+                tenureAllocation: { flexi: 350000, months3: 700000, months6: 1050000, months12: 1400000 },
+                history: generateHistory(20, "HIGH"),
                 status: "ACTIVE",
                 isActive: true
             },
@@ -73,6 +100,8 @@ export async function POST() {
                 conservativeROI: 15,
                 disclosureFactor: 0.5,
                 allocation: [{ asset: "Land", percentage: 100, color: "#8b5cf6" }],
+                tenureAllocation: { flexi: 800000, months3: 1600000, months6: 2400000, months12: 3200000 },
+                history: generateHistory(15, "MEDIUM"),
                 status: "ACTIVE",
                 isActive: true
             }
