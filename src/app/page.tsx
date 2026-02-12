@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, BarChart2, ShieldCheck, TrendingUp, Lock, Zap } from "lucide-react";
+import { BarChart2, ShieldCheck, TrendingUp, Lock, Zap } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
+import HeroActions from "@/components/landing/HeroActions";
 
 export default function Home() {
   return (
@@ -20,6 +21,10 @@ export default function Home() {
           <div className="hidden md:flex items-center gap-10 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <Link href="/about" className="text-sm font-medium text-slate-400 hover:text-white transition-all duration-300 relative group">
               About
+              <span className="absolute -bottom-1 left-1/2 w-0 h-px bg-emerald-500 group-hover:w-full group-hover:left-0 transition-all duration-300 shadow-lg shadow-emerald-500/50"></span>
+            </Link>
+            <Link href="/strategies" className="text-sm font-medium text-slate-400 hover:text-white transition-all duration-300 relative group">
+              Strategies
               <span className="absolute -bottom-1 left-1/2 w-0 h-px bg-emerald-500 group-hover:w-full group-hover:left-0 transition-all duration-300 shadow-lg shadow-emerald-500/50"></span>
             </Link>
             <Link href="/contact" className="text-sm font-medium text-slate-400 hover:text-white transition-all duration-300 relative group">
@@ -83,14 +88,8 @@ export default function Home() {
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
-              <Link href="/register" className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold text-lg shadow-lg shadow-emerald-500/40 transition-all transform hover:scale-105 flex items-center justify-center gap-2">
-                Start Simulation <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link href="/login" className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-semibold text-lg backdrop-blur-sm transition-all flex items-center justify-center">
-                View Demo
-              </Link>
-            </div>
+            {/* CTA Buttons */}
+            <HeroActions />
 
             {/* Stats strip */}
             <div className="mt-20 pt-10 border-t border-white/10 grid grid-cols-2 md:grid-cols-4 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">

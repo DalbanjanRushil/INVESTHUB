@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, Users, Target, Shield, Globe } from "lucide-react";
+import { Users, Target, Shield, Globe } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 
 export default function AboutPage() {
@@ -8,17 +8,30 @@ export default function AboutPage() {
 
             {/* Navigation */}
             <nav className="fixed w-full z-50 top-0 left-0 border-b border-white/5 bg-[#0B1120]/80 backdrop-blur-xl">
-                <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2 group">
-                        <div className="w-10 h-10 bg-[#1E293B] rounded-xl flex items-center justify-center border border-white/10 group-hover:border-emerald-500/50 transition-colors">
-                            <ArrowLeft className="text-white w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                        </div>
-                        <span className="text-sm font-medium text-slate-400 group-hover:text-white transition-colors">Back to Home</span>
-                    </Link>
+                <div className="container mx-auto px-6 h-20 flex items-center justify-between relative">
+                    {/* Brand */}
                     <Link href="/" className="flex items-center gap-2">
-                        <Logo size="sm" />
+                        <Logo size="md" />
                         <span className="text-xl font-bold tracking-tight text-white">InvestHub</span>
                     </Link>
+
+                    {/* Centered Links */}
+                    <div className="hidden md:flex items-center gap-8 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                        <Link href="/about" className="text-sm font-medium text-white relative">
+                            About
+                            <span className="absolute -bottom-5 left-0 w-full h-[2px] bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></span>
+                        </Link>
+                        <Link href="/strategies" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Strategies</Link>
+                        <Link href="/contact" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Contact</Link>
+                    </div>
+
+                    {/* Action */}
+                    <div className="flex items-center gap-6">
+                        <Link href="/login" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">Sign In</Link>
+                        <Link href="/register" className="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-full shadow-lg shadow-emerald-500/20 transition-all">
+                            Get Started
+                        </Link>
+                    </div>
                 </div>
             </nav>
 
