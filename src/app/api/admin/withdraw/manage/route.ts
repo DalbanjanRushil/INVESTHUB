@@ -98,7 +98,17 @@ export async function POST(req: Request) {
 
             } catch (err: any) {
                 console.error("Ledger Rejection Failed:", err);
-                return NextResponse.json({ error: err.message }, { status: 500 });
+
+                // FORCE DELETE LOGIC: If transaction is missing, we still mark as rejected to clean up UI
+                if (err.message === "Transaction not found") {
+                    console.warn(`Force rejecting withdrawal ${withdrawalId} due to missing transaction`);
+                    withdrawal.status = WithdrawalStatus.REJECTED;
+                    withdrawal.adminRemark = (remark || "Rejected by Admin") + " (System Note: Associated transaction record was missing)";
+                    withdrawal.processedAt = new Date();
+                    await withdrawal.save();
+                } else {
+                    return NextResponse.json({ error: err.message }, { status: 500 });
+                }
             }
         }
 
