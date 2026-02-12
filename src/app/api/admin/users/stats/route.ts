@@ -36,7 +36,7 @@ export async function GET(req: Request) {
                 name: user.name,
                 email: user.email,
                 status: user.status,
-                joinedAt: user.createdAt,
+                createdAt: user.createdAt,
                 investedAmount: totalInvested,
                 walletBalance: (wallet?.profit || 0) + (wallet?.referral || 0) // Liquid
             };
