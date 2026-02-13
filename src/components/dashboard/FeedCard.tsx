@@ -34,7 +34,7 @@ export default function FeedCard({ item }: { item: FeedItem }) {
     const [likes, setLikes] = useState(item.likesCount);
     const [isLiked, setIsLiked] = useState(item.isLiked);
     const [comments, setComments] = useState<Comment[]>(item.comments || []);
-    const [showComments, setShowComments] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [newComment, setNewComment] = useState("");
     const [submittingComment, setSubmittingComment] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -95,6 +95,8 @@ export default function FeedCard({ item }: { item: FeedItem }) {
                 };
                 setComments(prev => [...prev, addedComment]);
                 setNewComment("");
+                // Auto expand if user comments? or just show it (it becomes the latest)
+                if (!isExpanded) setIsExpanded(true);
             }
         } catch (error) {
             console.error(error);
@@ -210,7 +212,7 @@ export default function FeedCard({ item }: { item: FeedItem }) {
                         </button>
 
                         <button
-                            onClick={() => setShowComments(!showComments)}
+                            onClick={() => setIsExpanded(!isExpanded)}
                             className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                         >
                             <MessageCircle className="w-4 h-4" />
@@ -223,52 +225,63 @@ export default function FeedCard({ item }: { item: FeedItem }) {
                     </button>
                 </div>
 
-                {/* Comments Section (Collapsible) */}
-                {showComments && (
-                    <div className="mt-4 pt-4 border-t border-border animate-in slide-in-from-top-2 duration-200">
-                        {/* Comment List */}
-                        <div className="max-h-40 overflow-y-auto custom-scrollbar space-y-3 mb-3 pr-1">
-                            {comments.length > 0 ? (
-                                comments.map((c, i) => (
-                                    <div key={i} className="flex gap-2 text-sm group">
-                                        <div className="w-6 h-6 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-secondary-foreground">
-                                            {typeof c.user === 'object' ? c.user?.name?.[0] : "?"}
-                                        </div>
-                                        <div className="flex-1 bg-muted p-2 rounded-r-lg rounded-bl-lg">
-                                            <div className="flex justify-between items-center mb-0.5">
-                                                <span className="font-bold text-xs text-foreground">
-                                                    {typeof c.user === 'object' ? c.user?.name : "User"}
-                                                </span>
-                                                <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</span>
-                                            </div>
-                                            <p className="text-xs text-foreground leading-snug">{c.text}</p>
-                                        </div>
+                {/* Comments Section (YouTube Style) */}
+                <div className="mt-4 pt-4 border-t border-border animate-in fade-in duration-300">
+
+                    {/* Input Field - Always Visible */}
+                    <form onSubmit={handleComment} className="relative mb-4">
+                        <div className="w-6 h-6 rounded-full bg-primary/10 absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center text-[10px] font-bold text-primary">
+                            {session?.user?.name?.[0] || "U"}
+                        </div>
+                        <input
+                            type="text"
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            placeholder="Add a comment..."
+                            className="w-full pl-10 pr-10 py-2 bg-muted/50 border border-transparent focus:border-border hover:bg-muted rounded-full text-sm text-foreground placeholder:text-muted-foreground focus:ring-0 outline-none transition-colors"
+                        />
+                        <button
+                            type="submit"
+                            disabled={submittingComment || !newComment.trim()}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-primary hover:bg-primary/10 rounded-full transition disabled:opacity-50"
+                        >
+                            {submittingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                        </button>
+                    </form>
+
+                    {/* Comment List */}
+                    {comments.length > 0 && (
+                        <div className="space-y-3">
+                            {/* Display Logic: Reverse to show newest first. Slice based on expansion. */}
+                            {[...comments].reverse().slice(0, isExpanded ? undefined : 1).map((c, i) => (
+                                <div key={i} className="flex gap-3 text-sm group">
+                                    <div className="w-8 h-8 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center text-xs font-bold text-secondary-foreground border border-border">
+                                        {typeof c.user === 'object' ? c.user?.name?.[0] : "?"}
                                     </div>
-                                ))
-                            ) : (
-                                <p className="text-xs text-muted-foreground text-center py-2">No comments yet. Be the first!</p>
+                                    <div className="flex-1">
+                                        <div className="flex items-baseline gap-2 mb-0.5">
+                                            <span className="font-bold text-xs text-foreground">
+                                                {typeof c.user === 'object' ? c.user?.name : "User"}
+                                            </span>
+                                            <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                        <p className="text-sm text-foreground/90 leading-snug">{c.text}</p>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Expand/Collapse Toggle */}
+                            {comments.length > 1 && (
+                                <button
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    className="w-full text-left pt-1 ml-11 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                    {isExpanded ? "Show less" : `View all ${comments.length} comments`}
+                                </button>
                             )}
                         </div>
-
-                        {/* Comment Input */}
-                        <form onSubmit={handleComment} className="relative">
-                            <input
-                                type="text"
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                placeholder="Add a comment..."
-                                className="w-full pl-3 pr-10 py-2 bg-muted border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary outline-none transition-colors"
-                            />
-                            <button
-                                type="submit"
-                                disabled={submittingComment || !newComment.trim()}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-primary hover:bg-primary/10 rounded-md transition disabled:opacity-50"
-                            >
-                                {submittingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                            </button>
-                        </form>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );

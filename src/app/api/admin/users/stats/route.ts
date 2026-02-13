@@ -38,7 +38,10 @@ export async function GET(req: Request) {
                 status: user.status,
                 createdAt: user.createdAt,
                 investedAmount: totalInvested,
-                walletBalance: (wallet?.profit || 0) + (wallet?.referral || 0) // Liquid
+                walletBalance: (wallet?.profit || 0) + (wallet?.referral || 0), // Liquid
+                closureStatus: user.closureStatus,
+                closureReason: user.closureReason,
+                closureRequestedAt: user.closureRequestedAt
             };
         }));
 

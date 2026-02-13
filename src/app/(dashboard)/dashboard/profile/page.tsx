@@ -2,15 +2,19 @@
 
 import React, { useEffect, useState } from "react";
 import Navbar from "@/components/layout/Navbar";
-import { User, Shield, CreditCard, Users, Download, Save, Loader2 } from "lucide-react";
+import { User, Shield, CreditCard, Users, Download, Save, Loader2, AlertTriangle, ChevronRight } from "lucide-react";
+import AccountClosureModal from "@/components/profile/AccountClosureModal";
 
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export default function ProfilePage() {
     const [user, setUser] = useState<any>(null);
     const [referralData, setReferralData] = useState<any>({ count: 0, referrals: [] });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [isClosureModalOpen, setIsClosureModalOpen] = useState(false);
+    const [processingClosure, setProcessingClosure] = useState(false);
 
     // Form States
     const [name, setName] = useState("");
@@ -50,6 +54,26 @@ export default function ProfilePage() {
             toast.error("Failed to update");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleCancelClosure = async () => {
+        if (!confirm("Are you sure you want to cancel your account closure request?")) return;
+        setProcessingClosure(true);
+        try {
+            const res = await fetch("/api/user/cancel-closure", {
+                method: "POST",
+            });
+            if (res.ok) {
+                toast.success("Closure request cancelled.");
+                setUser({ ...user, closureStatus: "NONE" });
+            } else {
+                toast.error("Failed to cancel request.");
+            }
+        } catch (error) {
+            toast.error("Something went wrong.");
+        } finally {
+            setProcessingClosure(false);
         }
     };
 
@@ -195,8 +219,58 @@ export default function ProfilePage() {
                                 </table>
                             </div>
                         </div>
+
+                        {/* Account Actions */}
+                        <div className="bg-card p-8 rounded-2xl border border-border shadow-xl">
+                            <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-foreground">
+                                <Shield className="w-5 h-5 text-destructive" />
+                                Account Control
+                            </h3>
+
+                            <div className={cn(
+                                "flex flex-col md:flex-row items-center justify-between gap-6 p-6 rounded-xl border transition-all",
+                                user?.closureStatus === "REQUESTED"
+                                    ? "bg-orange-500/10 border-orange-500/20"
+                                    : "bg-destructive/5 border-destructive/20"
+                            )}>
+                                <div className="space-y-1">
+                                    <h4 className={cn("text-base font-bold", user?.closureStatus === "REQUESTED" ? "text-orange-500" : "text-foreground")}>
+                                        {user?.closureStatus === "REQUESTED" ? "Closure Request Pending" : "Close Account"}
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground max-w-lg">
+                                        {user?.closureStatus === "REQUESTED"
+                                            ? "Your request to close this account is currently under review. You can cancel this request at any time before approval."
+                                            : "Permanently delete your account and remove access to your portfolio. This action is irreversible and requires admin approval."
+                                        }
+                                    </p>
+                                </div>
+
+                                {user?.closureStatus === "REQUESTED" ? (
+                                    <button
+                                        onClick={handleCancelClosure}
+                                        disabled={processingClosure}
+                                        className="whitespace-nowrap px-5 py-2.5 bg-background border border-border hover:bg-secondary text-foreground text-sm font-bold rounded-lg transition-all flex items-center gap-2"
+                                    >
+                                        {processingClosure && <Loader2 className="w-4 h-4 animate-spin" />}
+                                        Cancel Request
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => setIsClosureModalOpen(true)}
+                                        className="whitespace-nowrap px-5 py-2.5 bg-destructive hover:bg-destructive/90 text-destructive-foreground text-sm font-bold rounded-lg transition-all shadow-lg shadow-red-500/20 flex items-center gap-2"
+                                    >
+                                        Close Account
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <AccountClosureModal
+                    isOpen={isClosureModalOpen}
+                    onClose={() => setIsClosureModalOpen(false)}
+                />
             </main>
         </div>
     );

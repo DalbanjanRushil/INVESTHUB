@@ -14,6 +14,9 @@ interface User {
     createdAt: string;
     investedAmount: number;
     walletBalance: number;
+    closureStatus: "NONE" | "REQUESTED" | "CLOSED";
+    closureReason?: string;
+    closureRequestedAt?: string;
 }
 
 interface UserManagementModalProps {
@@ -26,6 +29,7 @@ export default function UserManagementModal({ isOpen, onClose }: UserManagementM
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<"ALL" | "CLOSURE_REQUESTS">("ALL");
 
     useEffect(() => {
         if (isOpen) {
@@ -75,10 +79,40 @@ export default function UserManagementModal({ isOpen, onClose }: UserManagementM
         }
     };
 
-    const periodFilteredUsers = users.filter(u =>
-        u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.email.toLowerCase().includes(search.toLowerCase())
-    );
+    const handleClosureAction = async (userId: string, action: "APPROVE" | "REJECT") => {
+        if (!confirm(`Are you sure you want to ${action} this closure request?`)) return;
+
+        setProcessingId(userId);
+        try {
+            const res = await fetch("/api/admin/users/closure", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId, action }),
+            });
+
+            if (res.ok) {
+                toast.success(`Request ${action === "APPROVE" ? "Approved" : "Rejected"}`);
+                // Refresh list
+                fetchUsers();
+            } else {
+                toast.error("Action failed");
+            }
+        } catch (error) {
+            toast.error("Error occurred");
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    const periodFilteredUsers = users.filter(u => {
+        const matchesSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
+            u.email.toLowerCase().includes(search.toLowerCase());
+
+        if (activeTab === "CLOSURE_REQUESTS") {
+            return matchesSearch && u.closureStatus === "REQUESTED";
+        }
+        return matchesSearch;
+    });
 
     if (!isOpen) return null;
 
@@ -119,6 +153,33 @@ export default function UserManagementModal({ isOpen, onClose }: UserManagementM
                         </div>
                     </div>
 
+                    {/* Tabs */}
+                    <div className="flex items-center gap-4 px-4 border-b border-border bg-muted/20">
+                        <button
+                            onClick={() => setActiveTab("ALL")}
+                            className={cn(
+                                "px-4 py-3 text-sm font-medium border-b-2 transition-colors",
+                                activeTab === "ALL" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            All Users
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("CLOSURE_REQUESTS")}
+                            className={cn(
+                                "px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2",
+                                activeTab === "CLOSURE_REQUESTS" ? "border-destructive text-destructive" : "border-transparent text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            Closure Requests
+                            {users.filter(u => u.closureStatus === 'REQUESTED').length > 0 && (
+                                <span className="px-1.5 py-0.5 rounded-full bg-destructive text-destructive-foreground text-[10px]">
+                                    {users.filter(u => u.closureStatus === 'REQUESTED').length}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+
                     {/* List */}
                     <div className="p-4 space-y-3">
                         {loading ? (
@@ -132,8 +193,8 @@ export default function UserManagementModal({ isOpen, onClose }: UserManagementM
                         ) : (
                             periodFilteredUsers.map(user => (
                                 <div key={user._id} className={cn(
-                                    "p-4 rounded-xl border flex flex-col md:flex-row items-center justify-between gap-4 transition-all",
-                                    user.status === 'BLOCKED' ? "bg-red-900/10 border-red-500/20 opacity-75" : "bg-[#1E293B] border-slate-700 hover:border-blue-500/30"
+                                    "p-4 rounded-xl border flex flex-col md:flex-row items-center justify-between gap-4 transition-all shadow-sm",
+                                    user.status === 'BLOCKED' ? "bg-destructive/5 border-destructive/20 opacity-75" : "bg-card border-border hover:border-primary/30 hover:bg-accent/5"
                                 )}>
                                     <div className="flex items-center gap-4 w-full md:w-auto">
                                         <div className={cn(
@@ -152,39 +213,66 @@ export default function UserManagementModal({ isOpen, onClose }: UserManagementM
                                     </div>
 
                                     <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
-                                        <div className="text-right">
-                                            <p className="text-[10px] text-muted-foreground uppercase font-bold">Invested</p>
-                                            <p className="text-sm font-mono font-bold text-accent-primary flex items-center justify-end gap-1">
-                                                <IndianRupee className="w-3 h-3" /> {user.investedAmount.toLocaleString()}
-                                            </p>
-                                        </div>
+                                        {user.closureStatus === 'REQUESTED' ? (
+                                            <div className="flex items-center gap-2">
+                                                <div className="text-right mr-2">
+                                                    <p className="text-[10px] text-destructive uppercase font-bold">Closure Requested</p>
+                                                    <p className="text-xs text-muted-foreground max-w-[150px] truncate" title={user.closureReason}>
+                                                        "{user.closureReason}"
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleClosureAction(user._id, "APPROVE")}
+                                                    disabled={!!processingId}
+                                                    className="px-3 py-1.5 bg-destructive text-destructive-foreground text-xs font-bold rounded-lg hover:bg-destructive/90"
+                                                >
+                                                    Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => handleClosureAction(user._id, "REJECT")}
+                                                    disabled={!!processingId}
+                                                    className="px-3 py-1.5 border border-border text-foreground text-xs font-bold rounded-lg hover:bg-secondary"
+                                                >
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="text-right">
+                                                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Invested</p>
+                                                    <p className="text-sm font-mono font-bold text-accent-primary flex items-center justify-end gap-1">
+                                                        <IndianRupee className="w-3 h-3" /> {user.investedAmount.toLocaleString()}
+                                                    </p>
+                                                </div>
 
-                                        <div className="text-right">
-                                            <p className="text-[10px] text-muted-foreground uppercase font-bold">Joined</p>
-                                            <p className="text-xs text-foreground">
-                                                {new Date(user.createdAt).toLocaleDateString()}
-                                            </p>
-                                        </div>
+                                                <div className="text-right">
+                                                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Joined</p>
+                                                    <p className="text-xs text-foreground">
+                                                        {new Date(user.createdAt).toLocaleDateString()}
+                                                    </p>
+                                                </div>
 
-                                        <button
-                                            onClick={() => handleBlockToggle(user._id, user.status)}
-                                            disabled={processingId === user._id}
-                                            className={cn(
-                                                "p-2 rounded-lg transition-colors border",
-                                                user.status === 'ACTIVE'
-                                                    ? "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white"
-                                                    : "bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500 hover:text-white"
-                                            )}
-                                            title={user.status === 'ACTIVE' ? "Block User" : "Unblock User"}
-                                        >
-                                            {processingId === user._id ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                            ) : user.status === 'ACTIVE' ? (
-                                                <Ban className="w-4 h-4" />
-                                            ) : (
-                                                <CheckCircle className="w-4 h-4" />
-                                            )}
-                                        </button>
+                                                <button
+                                                    onClick={() => handleBlockToggle(user._id, user.status)}
+                                                    disabled={processingId === user._id}
+                                                    className={cn(
+                                                        "p-2 rounded-lg transition-colors border",
+                                                        user.status === 'ACTIVE'
+                                                            ? "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white"
+                                                            : "bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500 hover:text-white"
+                                                    )}
+                                                    title={user.status === 'ACTIVE' ? "Block User" : "Unblock User"}
+                                                >
+                                                    {processingId === user._id ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : user.status === 'ACTIVE' ? (
+                                                        <Ban className="w-4 h-4" />
+                                                    ) : (
+                                                        <CheckCircle className="w-4 h-4" />
+                                                    )}
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             ))
@@ -192,6 +280,6 @@ export default function UserManagementModal({ isOpen, onClose }: UserManagementM
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

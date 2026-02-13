@@ -10,6 +10,12 @@ export enum UserStatus {
     BLOCKED = "BLOCKED",
 }
 
+export enum ClosureStatus {
+    NONE = "NONE",
+    REQUESTED = "REQUESTED",
+    CLOSED = "CLOSED",
+}
+
 export interface IUser extends Document {
     name: string;
     email: string;
@@ -24,6 +30,9 @@ export interface IUser extends Document {
     kycStatus: "NOT_SUBMITTED" | "PENDING" | "VERIFIED" | "REJECTED";
     createdAt: Date;
     updatedAt: Date;
+    closureStatus: ClosureStatus;
+    closureReason?: string;
+    closureRequestedAt?: Date;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -81,6 +90,17 @@ const UserSchema = new Schema<IUser>(
         resetTokenExpiry: {
             type: Date,
             select: false,
+        },
+        closureStatus: {
+            type: String,
+            enum: Object.values(ClosureStatus),
+            default: ClosureStatus.NONE,
+        },
+        closureReason: {
+            type: String,
+        },
+        closureRequestedAt: {
+            type: Date,
         },
     },
     {
